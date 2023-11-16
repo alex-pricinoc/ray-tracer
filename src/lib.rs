@@ -2,6 +2,7 @@
 mod utils;
 
 pub mod canvas;
+pub mod matrix;
 pub mod tuple;
 
 type F = f64;

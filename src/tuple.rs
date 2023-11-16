@@ -10,8 +10,10 @@ pub fn vector(x: impl Into<F>, y: impl Into<F>, z: impl Into<F>) -> Tuple {
     Tuple::vector(x.into(), y.into(), z.into())
 }
 
-pub fn tuple(x: impl Into<F>, y: impl Into<F>, z: impl Into<F>, w: impl Into<F>) -> Tuple {
-    Tuple::new(x.into(), y.into(), z.into(), w.into())
+impl<A: Into<F>, B: Into<F>, C: Into<F>, D: Into<F>> From<(A, B, C, D)> for Tuple {
+    fn from(t: (A, B, C, D)) -> Self {
+        Tuple::new(t.0.into(), t.1.into(), t.2.into(), t.3.into())
+    }
 }
 
 #[must_use]
@@ -58,12 +60,12 @@ impl Add<Self> for Tuple {
     type Output = Self;
 
     fn add(self, other: Self) -> Self::Output {
-        tuple(
+        Self::from((
             self.x + other.x,
             self.y + other.y,
             self.z + other.z,
             self.w + other.w,
-        )
+        ))
     }
 }
 
@@ -71,12 +73,12 @@ impl Sub<Self> for Tuple {
     type Output = Self;
 
     fn sub(self, other: Self) -> Self::Output {
-        tuple(
+        Tuple::from((
             self.x - other.x,
             self.y - other.y,
             self.z - other.z,
             self.w - other.w,
-        )
+        ))
     }
 }
 
@@ -84,7 +86,7 @@ impl Neg for Tuple {
     type Output = Self;
 
     fn neg(self) -> Self::Output {
-        tuple(-self.x, -self.y, -self.z, -self.w)
+        Tuple::from((-self.x, -self.y, -self.z, -self.w))
     }
 }
 
@@ -92,12 +94,12 @@ impl Mul<F> for Tuple {
     type Output = Self;
 
     fn mul(self, other: F) -> Self::Output {
-        tuple(
+        Self::from((
             self.x * other,
             self.y * other,
             self.z * other,
             self.w * other,
-        )
+        ))
     }
 }
 
@@ -105,12 +107,12 @@ impl Div<F> for Tuple {
     type Output = Self;
 
     fn div(self, other: F) -> Self::Output {
-        tuple(
+        Tuple::from((
             self.x / other,
             self.y / other,
             self.z / other,
             self.w / other,
-        )
+        ))
     }
 }
 
@@ -156,6 +158,15 @@ impl Tuple {
         *self / self.magnitude()
     }
 
+    /// Dot product (or scalar product or inner product)
+    /// Takes two vectors and returns a scalar value.
+    /// Used when intersecting rays with objects.
+    /// The smaller the dot product, the larger the angle between the vectors.
+    /// A dot product of 1 means vectors are identical.
+    /// -1 means they point in opposite directions.
+    /// If two vectors are unit vectors, the dot product is the cosine of the
+    /// angle between them.
+    /// For more info: http://betterexplained.com/articles/vector-calculus-understanding-the-dot-product
     pub fn dot(&self, other: Self) -> F {
         self.x * other.x + self.y * other.y + self.z * other.z + self.w * other.w
     }
@@ -214,10 +225,10 @@ mod tests {
 
     #[test]
     fn adding_two_tuples() {
-        let tuple_one = tuple(3.0, -2.0, 5.0, 1.0);
-        let tuple_two = tuple(-2.0, 3.0, 1.0, 0.0);
+        let tuple_one = Tuple::from((3.0, -2.0, 5.0, 1.0));
+        let tuple_two = Tuple::from((-2.0, 3.0, 1.0, 0.0));
 
-        let expected_tuple = tuple(1.0, 1.0, 6.0, 1.0);
+        let expected_tuple = Tuple::from((1.0, 1.0, 6.0, 1.0));
 
         assert_fuzzy_eq!(tuple_one + tuple_two, expected_tuple);
     }
@@ -260,36 +271,36 @@ mod tests {
 
     #[test]
     fn negating_tuple() {
-        let a = tuple(1.0, -2.0, 3.0, -4.0);
+        let a = Tuple::from((1.0, -2.0, 3.0, -4.0));
 
-        let expected = tuple(-1.0, 2.0, -3.0, 4.0);
+        let expected = Tuple::from((-1.0, 2.0, -3.0, 4.0));
 
         assert_fuzzy_eq!(-a, expected);
     }
 
     #[test]
     fn multiplying_a_tuple_by_a_scalar() {
-        let a = tuple(1.0, -2.0, 3.0, -4.0);
+        let a = Tuple::from((1.0, -2.0, 3.0, -4.0));
 
-        let expected = tuple(3.5, -7.0, 10.5, -14.0);
+        let expected = Tuple::from((3.5, -7.0, 10.5, -14.0));
 
         assert_fuzzy_eq!(a * 3.5, expected);
     }
 
     #[test]
     fn multiplying_a_tuple_by_a_fraction() {
-        let a = tuple(1.0, -2.0, 3.0, -4.0);
+        let a = Tuple::from((1.0, -2.0, 3.0, -4.0));
 
-        let expected = tuple(0.5, -1.0, 1.5, -2.0);
+        let expected = Tuple::from((0.5, -1.0, 1.5, -2.0));
 
         assert_fuzzy_eq!(a * 0.5, expected);
     }
 
     #[test]
     fn dividing_a_tuple_by_a_scalar() {
-        let a = tuple(1.0, -2.0, 3.0, -4.0);
+        let a = Tuple::from((1.0, -2.0, 3.0, -4.0));
 
-        let expected = tuple(0.5, -1.0, 1.5, -2.0);
+        let expected = Tuple::from((0.5, -1.0, 1.5, -2.0));
 
         assert_fuzzy_eq!(a / 2.0, expected);
     }
