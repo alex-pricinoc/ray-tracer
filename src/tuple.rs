@@ -1,5 +1,6 @@
 use crate::utils::FuzzyEq;
 use crate::F;
+use std::fmt;
 use std::ops::{Add, Div, Index, IndexMut, Mul, Neg, Sub};
 
 pub fn point(x: impl Into<F>, y: impl Into<F>, z: impl Into<F>) -> Tuple {
@@ -73,7 +74,7 @@ impl Sub<Self> for Tuple {
     type Output = Self;
 
     fn sub(self, other: Self) -> Self::Output {
-        Tuple::from((
+        Self::from((
             self.x - other.x,
             self.y - other.y,
             self.z - other.z,
@@ -86,7 +87,7 @@ impl Neg for Tuple {
     type Output = Self;
 
     fn neg(self) -> Self::Output {
-        Tuple::from((-self.x, -self.y, -self.z, -self.w))
+        Self::from((-self.x, -self.y, -self.z, -self.w))
     }
 }
 
@@ -107,7 +108,7 @@ impl Div<F> for Tuple {
     type Output = Self;
 
     fn div(self, other: F) -> Self::Output {
-        Tuple::from((
+        Self::from((
             self.x / other,
             self.y / other,
             self.z / other,
@@ -185,6 +186,14 @@ impl Tuple {
     }
 }
 
+impl fmt::Display for Tuple {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let desc = if self.is_point() { "point" } else { "vector" };
+
+        write!(f, "{}({:.1}, {:.1}, {:.1})", desc, self.x, self.y, self.z)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -228,9 +237,7 @@ mod tests {
         let tuple_one = Tuple::from((3.0, -2.0, 5.0, 1.0));
         let tuple_two = Tuple::from((-2.0, 3.0, 1.0, 0.0));
 
-        let expected_tuple = Tuple::from((1.0, 1.0, 6.0, 1.0));
-
-        assert_fuzzy_eq!(tuple_one + tuple_two, expected_tuple);
+        assert_fuzzy_eq!(tuple_one + tuple_two, Tuple::from((1.0, 1.0, 6.0, 1.0)));
     }
 
     #[test]
@@ -254,9 +261,7 @@ mod tests {
         let v1 = vector(3.0, 2.0, 1.0);
         let v2 = vector(5.0, 6.0, 7.0);
 
-        let expected = vector(-2.0, -4.0, -6.0);
-
-        assert_fuzzy_eq!(v1 - v2, expected);
+        assert_fuzzy_eq!(v1 - v2, vector(-2.0, -4.0, -6.0));
     }
 
     #[test]
@@ -264,50 +269,41 @@ mod tests {
         let zero = vector(0.0, 0.0, 0.0);
         let v = vector(1.0, -2.0, 3.0);
 
-        let expected = vector(-1.0, 2.0, -3.0);
-
-        assert_fuzzy_eq!(zero - v, expected);
+        assert_fuzzy_eq!(zero - v, vector(-1.0, 2.0, -3.0));
     }
 
     #[test]
     fn negating_tuple() {
         let a = Tuple::from((1.0, -2.0, 3.0, -4.0));
 
-        let expected = Tuple::from((-1.0, 2.0, -3.0, 4.0));
-
-        assert_fuzzy_eq!(-a, expected);
+        assert_fuzzy_eq!(-a, Tuple::from((-1.0, 2.0, -3.0, 4.0)));
     }
 
     #[test]
     fn multiplying_a_tuple_by_a_scalar() {
         let a = Tuple::from((1.0, -2.0, 3.0, -4.0));
 
-        let expected = Tuple::from((3.5, -7.0, 10.5, -14.0));
-
-        assert_fuzzy_eq!(a * 3.5, expected);
+        assert_fuzzy_eq!(a * 3.5, Tuple::from((3.5, -7.0, 10.5, -14.0)));
     }
 
     #[test]
     fn multiplying_a_tuple_by_a_fraction() {
         let a = Tuple::from((1.0, -2.0, 3.0, -4.0));
 
-        let expected = Tuple::from((0.5, -1.0, 1.5, -2.0));
-
-        assert_fuzzy_eq!(a * 0.5, expected);
+        assert_fuzzy_eq!(a * 0.5, Tuple::from((0.5, -1.0, 1.5, -2.0)));
     }
 
     #[test]
     fn dividing_a_tuple_by_a_scalar() {
         let a = Tuple::from((1.0, -2.0, 3.0, -4.0));
 
-        let expected = Tuple::from((0.5, -1.0, 1.5, -2.0));
-
-        assert_fuzzy_eq!(a / 2.0, expected);
+        assert_fuzzy_eq!(a / 2.0, Tuple::from((0.5, -1.0, 1.5, -2.0)));
     }
 
     #[test]
     fn computing_the_magnitude_of_vector_1() {
         let v = vector(1.0, 0.0, 0.0);
+
         assert_fuzzy_eq!(v.magnitude(), 1.0)
     }
 
@@ -350,9 +346,8 @@ mod tests {
     #[test]
     fn normalize_vector_2() {
         let v = vector(1.0, 2.0, 3.0);
-        let expected = vector(0.26726, 0.53452, 0.80178);
 
-        assert_fuzzy_eq!(v.normalize(), expected);
+        assert_fuzzy_eq!(v.normalize(), vector(0.26726, 0.53452, 0.80178));
     }
 
     #[test]

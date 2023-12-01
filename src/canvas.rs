@@ -99,8 +99,8 @@ impl FuzzyEq<Color> for Color {
 
 #[must_use]
 pub struct Canvas {
-    width: usize,
-    height: usize,
+    pub width: usize,
+    pub height: usize,
 
     pixels: Vec<Color>,
 }
@@ -116,14 +116,6 @@ impl Canvas {
             height,
             pixels: vec![color; width * height],
         }
-    }
-
-    pub fn width(&self) -> usize {
-        self.width
-    }
-
-    pub fn height(&self) -> usize {
-        self.height
     }
 
     fn pixel_at(&self, x: usize, y: usize) -> Color {
