@@ -1,5 +1,5 @@
 use log::*;
-use ray_tracer::tuple::{point, vector, Tuple};
+use ray_tracer::{point, vector, Tuple};
 
 #[derive(Debug)]
 struct Environment {

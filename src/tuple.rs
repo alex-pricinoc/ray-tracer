@@ -1,4 +1,4 @@
-use crate::utils::FuzzyEq;
+use crate::FuzzyEq;
 use crate::F;
 use std::fmt;
 use std::ops::{Add, Div, Index, IndexMut, Mul, Neg, Sub};
@@ -148,15 +148,15 @@ impl Tuple {
     /// were to walk from one end of the vector to the other.
     ///
     /// Vectors with magnitude of 1 are called `unit vectors`.
-    fn magnitude(&self) -> F {
+    fn magnitude(self) -> F {
         F::sqrt(self.x.powi(2) + self.y.powi(2) + self.z.powi(2) + self.w.powi(2))
     }
 
     /// Normalization is the process of taking an arbitrary vector and
     /// converting it into a unit vector. It will keep your calculations
     /// anchored relative to a common scale (the unit vector).
-    pub fn normalize(&self) -> Self {
-        *self / self.magnitude()
+    pub fn normalize(self) -> Self {
+        self / self.magnitude()
     }
 
     /// Dot product (or scalar product or inner product)
@@ -168,11 +168,11 @@ impl Tuple {
     /// If two vectors are unit vectors, the dot product is the cosine of the
     /// angle between them.
     /// For more info: http://betterexplained.com/articles/vector-calculus-understanding-the-dot-product
-    pub fn dot(&self, other: Self) -> F {
+    pub fn dot(self, other: Self) -> F {
         self.x * other.x + self.y * other.y + self.z * other.z + self.w * other.w
     }
 
-    pub fn cross(&self, other: Self) -> Self {
+    pub fn cross(self, other: Self) -> Self {
         assert!(
             self.is_vector() && other.is_vector(),
             "Cross product can only be calculated for two vectors."

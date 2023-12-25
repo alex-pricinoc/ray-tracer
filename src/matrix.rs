@@ -1,7 +1,7 @@
 #![allow(dead_code)]
 
-use crate::tuple::Tuple;
-use crate::utils::FuzzyEq;
+use crate::FuzzyEq;
+use crate::Tuple;
 use crate::F;
 use std::fmt;
 use std::ops::{Index, IndexMut, Mul};
@@ -154,6 +154,18 @@ impl Matrix<4> {
 
     pub fn scale(self, x: impl Into<F>, y: impl Into<F>, z: impl Into<F>) -> Self {
         Self::scaling(x, y, z) * self
+    }
+
+    pub fn sheare(
+        self,
+        xy: impl Into<F>,
+        xz: impl Into<F>,
+        yx: impl Into<F>,
+        yz: impl Into<F>,
+        zx: impl Into<F>,
+        zy: impl Into<F>,
+    ) -> Self {
+        Self::shearing(xy, xz, yx, yz, zx, zy) * self
     }
 
     pub fn rotation_x(r: F) -> Self {
@@ -365,8 +377,7 @@ impl<const D: usize> Default for Matrix<D> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::tuple::{point, vector};
-    use std::f64::consts::PI;
+    use crate::*;
 
     #[test]
     fn matrix2() {
@@ -777,7 +788,7 @@ mod tests {
         let mut m = identity;
         m[0][0] = 5.0;
         //A: The tuple changes
-        println!("{:?}", m * t);
+        // println!("{:?}", m * t);
     }
 
     #[test]

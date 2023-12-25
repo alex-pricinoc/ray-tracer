@@ -1,6 +1,6 @@
 #![allow(dead_code)]
 
-use crate::utils::FuzzyEq;
+use crate::FuzzyEq;
 use crate::F;
 use std::io;
 use std::io::Write;
@@ -119,11 +119,11 @@ impl Canvas {
     }
 
     fn pixel_at(&self, x: usize, y: usize) -> Color {
-        self.rows().nth(y).unwrap()[x]
+        self.pixels[y * self.width + x]
     }
 
     pub fn write_pixel(&mut self, x: usize, y: usize, color: Color) {
-        self.rows_mut().nth(y).unwrap()[x] = color;
+        self.pixels[y * self.width + x] = color;
     }
 
     fn rows(&self) -> impl Iterator<Item = &[Color]> {

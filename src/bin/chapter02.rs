@@ -1,8 +1,6 @@
 use log::*;
+use ray_tracer::{color, point, vector, Canvas, Tuple};
 use std::fs::File;
-
-use ray_tracer::canvas::{color, Canvas};
-use ray_tracer::tuple::{point, vector, Tuple};
 
 #[derive(Debug)]
 struct Projectile {
@@ -24,9 +22,7 @@ fn tick(projectile: &mut Projectile, env: &Environment) {
 fn main() {
     env_logger::init();
 
-    let (width, height) = (1350, 825);
-
-    let mut canvas = Canvas::new_with_color(width, height, color(1, 1, 1));
+    let mut canvas = Canvas::new_with_color(1350, 825, color(1, 1, 1));
 
     let mut projectile = Projectile {
         position: point(0, 0, 0),
@@ -44,7 +40,7 @@ fn main() {
         let x = projectile.position.x.round() as usize;
         let y = projectile.position.y.round() as usize;
 
-        canvas.write_pixel(x, height - 1 - y, color);
+        canvas.write_pixel(x, canvas.height - 1 - y, color);
 
         tick(&mut projectile, &environment);
 
