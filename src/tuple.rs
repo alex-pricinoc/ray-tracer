@@ -46,6 +46,10 @@ impl Tuple {
     pub fn is_vector(&self) -> bool {
         self.w.fuzzy_eq(0.0)
     }
+
+    pub fn reflect(&self, normal: Tuple) -> Self {
+        *self - normal * 2.0 * self.dot(normal)
+    }
 }
 
 impl FuzzyEq<Tuple> for Tuple {
@@ -373,5 +377,23 @@ mod tests {
 
         assert_fuzzy_eq!(a.cross(b), vector(-1.0, 2.0, -1.0));
         assert_fuzzy_eq!(b.cross(a), vector(1.0, -2.0, 1.0));
+    }
+
+    #[test]
+    fn reflecting_a_vector_aproaching_at_45_deg() {
+        let v = vector(1, -1, 0);
+        let n = vector(0, 1, 0);
+        let r = v.reflect(n);
+
+        assert_fuzzy_eq!(r, vector(1, 1, 0));
+    }
+
+    #[test]
+    fn reflecting_a_vector_of_a_slanted_surface() {
+        let v = vector(0, -1, 0);
+        let n = vector(F::sqrt(2.0) / 2.0, F::sqrt(2.0) / 2.0, 0);
+        let r = v.reflect(n);
+
+        assert_fuzzy_eq!(r, vector(1, 0, 0));
     }
 }

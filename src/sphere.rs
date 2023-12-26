@@ -1,9 +1,10 @@
-use crate::{point, Intersection, Intersections, Matrix, Ray, Shape};
+use crate::{point, Intersection, Intersections, Material, Matrix, Ray, Shape, Tuple};
 use std::any::Any;
 
 #[derive(Debug)]
 pub struct Sphere {
-    transform: Matrix<4>,
+    pub transform: Matrix<4>,
+    pub material: Material,
 }
 
 impl Sphere {
@@ -42,12 +43,22 @@ impl Sphere {
     pub fn set_transform(&mut self, transform: Matrix<4>) {
         self.transform = transform
     }
+
+    pub fn normal_at(&self, world_point: Tuple) -> Tuple {
+        let object_point = self.transform.inverse() * world_point;
+        let object_normal = object_point - point(0, 0, 0);
+        let mut world_normal = self.transform.inverse().transpose() * object_normal;
+        world_normal.w = 0.0;
+
+        world_normal.normalize()
+    }
 }
 
 impl Default for Sphere {
     fn default() -> Self {
         Self {
             transform: Matrix::identity(),
+            material: Material::default(),
         }
     }
 }
@@ -64,6 +75,14 @@ impl Shape for Sphere {
     fn shape_eq(&self, other: &dyn Any) -> bool {
         other.downcast_ref::<Self>().is_some()
     }
+
+    fn material(&self) -> &Material {
+        &self.material
+    }
+
+    fn normal_at(&self, world_point: Tuple) -> Tuple {
+        self.normal_at(world_point)
+    }
 }
 
 impl From<Sphere> for Box<dyn Shape> {
@@ -74,6 +93,8 @@ impl From<Sphere> for Box<dyn Shape> {
 
 #[cfg(test)]
 mod tests {
+    #![allow(clippy::approx_constant)]
+
     use super::*;
     use crate::*;
 
@@ -178,5 +199,93 @@ mod tests {
         let xs = s.intersect(r);
 
         assert_eq!(xs.count(), 0)
+    }
+
+    #[test]
+    fn the_normal_on_a_sphere_at_a_point_on_the_x_axis() {
+        let s = Sphere::new();
+        let n = s.normal_at(point(1, 0, 0));
+
+        assert_eq!(n, vector(1, 0, 0));
+    }
+
+    #[test]
+    fn the_normal_on_a_sphere_is_at_a_point_on_the_y_axis() {
+        let s = Sphere::new();
+        let n = s.normal_at(point(0, 1, 0));
+
+        assert_eq!(n, vector(0, 1, 0));
+    }
+
+    #[test]
+    fn the_normal_on_a_sphere_is_at_a_point_on_the_z_axis() {
+        let s = Sphere::new();
+        let n = s.normal_at(point(0, 0, 1));
+
+        assert_eq!(n, vector(0, 0, 1));
+    }
+
+    #[test]
+    fn the_normal_on_a_sphere_at_a_nonaxial_point() {
+        let s = Sphere::new();
+        let n = s.normal_at(point(
+            F::sqrt(3.0) / 3.0,
+            F::sqrt(3.0) / 3.0,
+            F::sqrt(3.0) / 3.0,
+        ));
+
+        assert_eq!(
+            n,
+            vector(F::sqrt(3.0) / 3.0, F::sqrt(3.0) / 3.0, F::sqrt(3.0) / 3.0)
+        );
+    }
+
+    #[test]
+    fn the_normal_is_a_normalized_vector() {
+        let s = Sphere::new();
+        let n = s.normal_at(point(
+            F::sqrt(3.0) / 3.0,
+            F::sqrt(3.0) / 3.0,
+            F::sqrt(3.0) / 3.0,
+        ));
+
+        assert_eq!(n, n.normalize());
+    }
+
+    #[test]
+    fn computing_the_normal_on_a_translated_sphere() {
+        let mut s = Sphere::new();
+        s.set_transform(Matrix::translation(0, 1, 0));
+        let n = s.normal_at(point(0, 1.70711, -0.70711));
+
+        assert_fuzzy_eq!(n, vector(0, 0.70711, -0.70711));
+    }
+
+    #[test]
+    fn computing_the_normal_on_a_transformed_sphere() {
+        let mut s = Sphere::new();
+        let m = Matrix::scaling(1, 0.5, 1) * Matrix::rotation_z(PI / 5.0);
+        s.set_transform(m);
+        let n = s.normal_at(point(0, F::sqrt(2.0) / 2.0, -F::sqrt(2.0) / 2.0));
+
+        assert_fuzzy_eq!(n, vector(0, 0.97014, -0.24254));
+    }
+
+    #[test]
+    fn a_sphere_has_a_default_material() {
+        let s = Sphere::new();
+        let m = s.material;
+
+        assert_eq!(m, Material::default());
+    }
+
+    #[test]
+    fn a_sphere_can_be_assigned_a_material() {
+        let mut s = Sphere::new();
+        let mut m = Material::new();
+        m.ambient = 1.0;
+        s.material = m;
+
+        assert_eq!(s.material, m);
     }
 }

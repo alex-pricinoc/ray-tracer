@@ -788,7 +788,7 @@ mod tests {
         let mut m = identity;
         m[0][0] = 5.0;
         //A: The tuple changes
-        // println!("{:?}", m * t);
+        assert_eq!(m * t, Tuple::from((5, 2, 3, 1)));
     }
 
     #[test]

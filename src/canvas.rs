@@ -19,15 +19,15 @@ pub struct Color {
 }
 
 impl Color {
-    fn new(red: F, green: F, blue: F) -> Self {
+    pub fn new(red: F, green: F, blue: F) -> Self {
         Self { red, green, blue }
     }
 
-    fn black() -> Self {
+    pub fn black() -> Self {
         color(0, 0, 0)
     }
 
-    fn clip(self, lo: F, hi: F) -> Self {
+    pub fn clip(self, lo: F, hi: F) -> Self {
         Self::new(
             self.red.max(lo).min(hi),
             self.green.max(lo).min(hi),
@@ -35,7 +35,7 @@ impl Color {
         )
     }
 
-    fn to_u8(self) -> (u8, u8, u8) {
+    pub fn to_u8(self) -> (u8, u8, u8) {
         let c = self.clip(0.0, 1.0);
         (
             (c.red * 255.0).round() as _,

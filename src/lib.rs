@@ -3,14 +3,18 @@ mod utils;
 
 mod canvas;
 mod intersection;
+mod light;
+mod material;
 mod matrix;
 mod ray;
 mod shape;
 mod sphere;
 mod tuple;
 
-pub use canvas::{color, Canvas};
+pub use canvas::{color, Canvas, Color};
 pub use intersection::{Intersection, Intersections};
+pub use light::PointLight;
+pub use material::Material;
 pub use matrix::Matrix;
 pub use ray::Ray;
 pub use shape::Shape;
