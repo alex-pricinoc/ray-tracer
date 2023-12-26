@@ -1,5 +1,5 @@
 use log::*;
-use ray_tracer::{point, vector, Tuple};
+use ray_tracer::{pt, v, Tuple};
 
 #[derive(Debug)]
 struct Environment {
@@ -33,9 +33,9 @@ impl Environment {
 fn main() {
     env_logger::init();
 
-    let mut projectile = Projectile::new(point(0.0, 1.0, 0.0), vector(1.0, 1.0, 0.0).normalize());
+    let mut projectile = Projectile::new(pt(0.0, 1.0, 0.0), v(1.0, 1.0, 0.0).normalize());
 
-    let environment = Environment::new(vector(0.0, -0.1, 0.0), vector(-0.01, 0.0, 0.0));
+    let environment = Environment::new(v(0.0, -0.1, 0.0), v(-0.01, 0.0, 0.0));
 
     let mut iteration = 0;
 

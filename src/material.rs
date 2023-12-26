@@ -10,6 +10,7 @@ pub struct Material {
 }
 
 impl Material {
+    #[must_use]
     pub fn new() -> Self {
         Self::default()
     }
@@ -63,6 +64,42 @@ impl Material {
 
         ambient_light + diffuse_light + specular_light
     }
+
+    #[must_use]
+    pub fn rgb(mut self, r: impl Into<F>, g: impl Into<F>, b: impl Into<F>) -> Self {
+        self.color = color(r, g, b);
+        self
+    }
+
+    #[must_use]
+    pub fn color(mut self, color: Color) -> Self {
+        self.color = color;
+        self
+    }
+
+    #[must_use]
+    pub fn ambient(mut self, ambient: F) -> Self {
+        self.ambient = ambient;
+        self
+    }
+
+    #[must_use]
+    pub fn diffuse(mut self, diffuse: F) -> Self {
+        self.diffuse = diffuse;
+        self
+    }
+
+    #[must_use]
+    pub fn specular(mut self, specular: F) -> Self {
+        self.specular = specular;
+        self
+    }
+
+    #[must_use]
+    pub fn shininess(mut self, shininess: F) -> Self {
+        self.shininess = shininess;
+        self
+    }
 }
 
 impl Default for Material {
@@ -96,11 +133,11 @@ mod tests {
     #[test]
     fn lighting_with_the_eye_between_the_light_and_the_surface() {
         let m = Material::new();
-        let position = point(0, 0, 0);
+        let position = pt(0, 0, 0);
 
-        let eyev = vector(0, 0, -1);
-        let normalv = vector(0, 0, -1);
-        let light = PointLight::new(point(0, 0, -10), color(1, 1, 1));
+        let eyev = v(0, 0, -1);
+        let normalv = v(0, 0, -1);
+        let light = PointLight::new(pt(0, 0, -10), color(1, 1, 1));
 
         let result = m.lighting(light, position, eyev, normalv);
         assert_fuzzy_eq!(result, color(1.9, 1.9, 1.9));
@@ -109,11 +146,11 @@ mod tests {
     #[test]
     fn lighting_with_the_eye_between_light_and_surface_eye_offset_45_deg() {
         let m = Material::new();
-        let position = point(0, 0, 0);
+        let position = pt(0, 0, 0);
 
-        let eyev = vector(0, F::sqrt(2.0) / 2.0, -F::sqrt(2.0) / 2.0);
-        let normalv = vector(0, 0, -1);
-        let light = PointLight::new(point(0, 0, -10), color(1, 1, 1));
+        let eyev = v(0, F::sqrt(2.0) / 2.0, -F::sqrt(2.0) / 2.0);
+        let normalv = v(0, 0, -1);
+        let light = PointLight::new(pt(0, 0, -10), color(1, 1, 1));
 
         let result = m.lighting(light, position, eyev, normalv);
         assert_fuzzy_eq!(result, color(1, 1, 1));
@@ -122,11 +159,11 @@ mod tests {
     #[test]
     fn lighting_with_eye_opposite_surface_light_offset_45_deg() {
         let m = Material::new();
-        let position = point(0, 0, 0);
+        let position = pt(0, 0, 0);
 
-        let eyev = vector(0, 0, -1);
-        let normalv = vector(0, 0, -1);
-        let light = PointLight::new(point(0, 10, -10), color(1, 1, 1));
+        let eyev = v(0, 0, -1);
+        let normalv = v(0, 0, -1);
+        let light = PointLight::new(pt(0, 10, -10), color(1, 1, 1));
 
         let result = m.lighting(light, position, eyev, normalv);
 
@@ -134,13 +171,13 @@ mod tests {
     }
 
     #[test]
-    fn lighting_with_eye_in_the_path_of_the_reflection_vector() {
+    fn lighting_with_eye_in_the_path_of_the_reflection_v() {
         let m = Material::new();
-        let position = point(0, 0, 0);
+        let position = pt(0, 0, 0);
 
-        let eyev = vector(0, -F::sqrt(2.0) / 2.0, -F::sqrt(2.0) / 2.0);
-        let normalv = vector(0, 0, -1);
-        let light = PointLight::new(point(0, 10, -10), color(1, 1, 1));
+        let eyev = v(0, -F::sqrt(2.0) / 2.0, -F::sqrt(2.0) / 2.0);
+        let normalv = v(0, 0, -1);
+        let light = PointLight::new(pt(0, 10, -10), color(1, 1, 1));
 
         let result = m.lighting(light, position, eyev, normalv);
 
@@ -150,11 +187,11 @@ mod tests {
     #[test]
     fn lighting_with_the_light_behind_the_surface() {
         let m = Material::new();
-        let position = point(0, 0, 0);
+        let position = pt(0, 0, 0);
 
-        let eyev = vector(0, 0, -1);
-        let normalv = vector(0, 0, -1);
-        let light = PointLight::new(point(0, 0, 10), color(1, 1, 1));
+        let eyev = v(0, 0, -1);
+        let normalv = v(0, 0, -1);
+        let light = PointLight::new(pt(0, 0, 10), color(1, 1, 1));
 
         let result = m.lighting(light, position, eyev, normalv);
 

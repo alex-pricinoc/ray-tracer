@@ -1,5 +1,4 @@
-use crate::FuzzyEq;
-use crate::F;
+use crate::{FuzzyEq, F};
 use std::fmt;
 use std::ops::{Add, Div, Index, IndexMut, Mul, Neg, Sub};
 
@@ -17,7 +16,6 @@ impl<A: Into<F>, B: Into<F>, C: Into<F>, D: Into<F>> From<(A, B, C, D)> for Tupl
     }
 }
 
-#[must_use]
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub struct Tuple {
     pub x: F,
@@ -39,14 +37,17 @@ impl Tuple {
         Self { x, y, z, w: 0.0 }
     }
 
+    #[must_use]
     pub fn is_point(&self) -> bool {
         self.w.fuzzy_eq(1.0)
     }
 
+    #[must_use]
     pub fn is_vector(&self) -> bool {
         self.w.fuzzy_eq(0.0)
     }
 
+    #[must_use]
     pub fn reflect(&self, normal: Tuple) -> Self {
         *self - normal * 2.0 * self.dot(normal)
     }
@@ -159,6 +160,7 @@ impl Tuple {
     /// Normalization is the process of taking an arbitrary vector and
     /// converting it into a unit vector. It will keep your calculations
     /// anchored relative to a common scale (the unit vector).
+    #[must_use]
     pub fn normalize(self) -> Self {
         self / self.magnitude()
     }
@@ -172,10 +174,12 @@ impl Tuple {
     /// If two vectors are unit vectors, the dot product is the cosine of the
     /// angle between them.
     /// For more info: http://betterexplained.com/articles/vector-calculus-understanding-the-dot-product
+    #[must_use]
     pub fn dot(self, other: Self) -> F {
         self.x * other.x + self.y * other.y + self.z * other.z + self.w * other.w
     }
 
+    #[must_use]
     pub fn cross(self, other: Self) -> Self {
         assert!(
             self.is_vector() && other.is_vector(),
@@ -308,35 +312,35 @@ mod tests {
     fn computing_the_magnitude_of_vector_1() {
         let v = vector(1.0, 0.0, 0.0);
 
-        assert_fuzzy_eq!(v.magnitude(), 1.0)
+        assert_fuzzy_eq!(v.magnitude(), 1.0);
     }
 
     #[test]
     fn computing_the_magnitude_of_vector_2() {
         let v = vector(0.0, 1.0, 0.0);
 
-        assert_fuzzy_eq!(v.magnitude(), 1.0)
+        assert_fuzzy_eq!(v.magnitude(), 1.0);
     }
 
     #[test]
     fn computing_the_magnitude_of_vector_3() {
         let v = vector(0.0, 0.0, 1.0);
 
-        assert_fuzzy_eq!(v.magnitude(), 1.0)
+        assert_fuzzy_eq!(v.magnitude(), 1.0);
     }
 
     #[test]
     fn computing_the_magnitude_of_vector_4() {
         let v = vector(1.0, 2.0, 3.0);
 
-        assert_fuzzy_eq!(v.magnitude(), F::sqrt(14.0))
+        assert_fuzzy_eq!(v.magnitude(), F::sqrt(14.0));
     }
 
     #[test]
     fn computing_the_magnitude_of_vector_5() {
         let v = vector(-1.0, -2.0, -3.0);
 
-        assert_fuzzy_eq!(v.magnitude(), F::sqrt(14.0))
+        assert_fuzzy_eq!(v.magnitude(), F::sqrt(14.0));
     }
 
     #[test]

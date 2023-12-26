@@ -1,6 +1,14 @@
-use crate::{Shape, F};
-use std::cmp::Ordering;
-use std::ops::{Deref, DerefMut};
+use crate::{Ray, Shape, Tuple, F};
+use std::cmp::{Ord, Ordering};
+
+pub struct Comps<'shape> {
+    pub t: F,
+    pub object: &'shape dyn Shape,
+    pub point: Tuple,
+    pub eyev: Tuple,
+    pub normalv: Tuple,
+    pub inside: bool,
+}
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Intersection<'shape> {
@@ -11,6 +19,32 @@ pub struct Intersection<'shape> {
 impl<'shape> Intersection<'shape> {
     pub fn new(t: F, object: &'shape dyn Shape) -> Intersection<'shape> {
         Self { t, object }
+    }
+
+    #[must_use]
+    pub fn prepare_computations(&self, ray: Ray) -> Comps {
+        let t = self.t;
+        let object = self.object;
+
+        let point = ray.position(t);
+        let eyev = -ray.direction;
+
+        let mut normalv = object.normal_at(point);
+        let mut inside = false;
+
+        if normalv.dot(eyev) < 0. {
+            inside = true;
+            normalv = -normalv;
+        }
+
+        Comps {
+            t,
+            object,
+            point,
+            eyev,
+            normalv,
+            inside,
+        }
     }
 }
 
@@ -34,39 +68,13 @@ impl PartialOrd for Intersection<'_> {
     }
 }
 
-#[derive(Debug, Default)]
-pub struct Intersections<'shape>(Vec<Intersection<'shape>>);
-
-impl Intersections<'_> {
-    pub fn hit(&self) -> Option<&Intersection> {
-        self.0.iter().find(|&i| i.t >= 0.)
-    }
-
-    pub fn count(&self) -> usize {
-        self.len()
-    }
+pub trait Intersections {
+    fn hit(&self) -> Option<&Intersection<'_>>;
 }
 
-impl<'shape, const N: usize> From<[Intersection<'shape>; N]> for Intersections<'shape> {
-    fn from(xs: [Intersection<'shape>; N]) -> Self {
-        let mut xs = Vec::from(xs);
-        xs.sort_unstable();
-
-        Self(xs)
-    }
-}
-
-impl<'shape> Deref for Intersections<'shape> {
-    type Target = Vec<Intersection<'shape>>;
-
-    fn deref(&self) -> &Self::Target {
-        &self.0
-    }
-}
-
-impl DerefMut for Intersections<'_> {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.0
+impl Intersections for Vec<Intersection<'_>> {
+    fn hit(&self) -> Option<&Intersection<'_>> {
+        self.iter().filter(|i| i.t >= 0.0).min_by(Ord::cmp)
     }
 }
 
@@ -89,9 +97,10 @@ mod tests {
         let s = Sphere::new();
         let i1 = Intersection::new(1.0, &s);
         let i2 = Intersection::new(2.0, &s);
-        let xs = Intersections::from([i1, i2]);
+        #[allow(clippy::useless_vec)]
+        let xs = vec![i1, i2];
 
-        assert_eq!(xs.count(), 2);
+        assert_eq!(xs.len(), 2);
     }
 
     #[test]
@@ -99,10 +108,10 @@ mod tests {
         let s = Sphere::new();
         let i1 = Intersection::new(1.0, &s);
         let i2 = Intersection::new(2.0, &s);
-        let xs = Intersections::from([i2, i1]);
+        let xs = vec![i2, i1];
 
         let i = xs.hit();
-        assert_eq!(i, Some(&i1))
+        assert_eq!(i, Some(&i1));
     }
 
     #[test]
@@ -110,7 +119,7 @@ mod tests {
         let s = Sphere::new();
         let i1 = Intersection::new(-1.0, &s);
         let i2 = Intersection::new(1.0, &s);
-        let xs = Intersections::from([i2, i1]);
+        let xs = vec![i2, i1];
 
         let i = xs.hit();
         assert_eq!(i, Some(&i2));
@@ -121,7 +130,7 @@ mod tests {
         let s = Sphere::new();
         let i1 = Intersection::new(-2.0, &s);
         let i2 = Intersection::new(-1.0, &s);
-        let xs = Intersections::from([i2, i1]);
+        let xs = vec![i2, i1];
         let i = xs.hit();
 
         assert_eq!(i, None);
@@ -134,10 +143,48 @@ mod tests {
         let i2 = Intersection::new(7.0, &s);
         let i3 = Intersection::new(-3.0, &s);
         let i4 = Intersection::new(2.0, &s);
-        let xs = Intersections::from([i1, i2, i3, i4]);
+        let xs = vec![i1, i2, i3, i4];
 
         let i = xs.hit();
 
         assert_eq!(i, Some(&i4));
+    }
+
+    #[test]
+    fn precomputing_the_state_of_an_intersection() {
+        let r = Ray::new(pt(0, 0, -5), v(0, 0, 1));
+        let shape = Sphere::new();
+        let i = Intersection::new(4.0, &shape as &dyn Shape);
+
+        let comps = i.prepare_computations(r);
+
+        assert_eq!(comps.t, i.t);
+        assert_eq!(comps.object, i.object);
+        assert_eq!(comps.point, pt(0, 0, -1));
+        assert_eq!(comps.eyev, v(0, 0, -1));
+        assert_eq!(comps.normalv, v(0, 0, -1));
+    }
+
+    #[test]
+    fn the_hit_when_an_intersection_occurs_on_the_outside() {
+        let r = Ray::new(pt(0, 0, -5), v(0, 0, 1));
+        let shape = Sphere::new();
+        let i = Intersection::new(4.0, &shape as &dyn Shape);
+
+        let comps = i.prepare_computations(r);
+        assert!(!comps.inside);
+    }
+
+    #[test]
+    fn the_hit_when_an_intersection_occurs_on_the_inside() {
+        let r = Ray::new(pt(0, 0, 0), v(0, 0, 1));
+        let shape = Sphere::new();
+        let i = Intersection::new(1.0, &shape as &dyn Shape);
+
+        let comps = i.prepare_computations(r);
+        assert!(comps.inside);
+        assert_eq!(comps.point, pt(0, 0, 1));
+        assert_eq!(comps.eyev, v(0, 0, -1));
+        assert_eq!(comps.normalv, v(0, 0, -1));
     }
 }

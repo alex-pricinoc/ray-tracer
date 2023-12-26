@@ -7,7 +7,7 @@ use std::fmt;
 use std::ops::{Index, IndexMut, Mul};
 
 #[derive(Copy, Clone)]
-pub struct Matrix<const D: usize>([[F; D]; D]);
+pub struct Matrix<const D: usize>(pub [[F; D]; D]);
 
 #[macro_export]
 macro_rules! matrix {
@@ -44,14 +44,17 @@ macro_rules! matrix {
 }
 
 impl<const D: usize> Matrix<D> {
+    #[must_use]
     pub fn new() -> Self {
         Self([[0.0; D]; D])
     }
 
+    #[must_use]
     pub fn size(&self) -> usize {
         D
     }
 
+    #[must_use]
     pub fn transpose(&self) -> Self {
         let mut matrix = matrix![];
 
@@ -66,16 +69,19 @@ impl<const D: usize> Matrix<D> {
 }
 
 impl Matrix<2> {
+    #[must_use]
     pub fn determinant(&self) -> F {
         self[0][0] * self[1][1] - self[0][1] * self[1][0]
     }
 
+    #[must_use]
     pub fn is_invertible(&self) -> bool {
         self.determinant() == 0.0
     }
 }
 
 impl Matrix<3> {
+    #[must_use]
     pub fn determinant(&self) -> F {
         let mut det = 0.0;
 
@@ -86,10 +92,12 @@ impl Matrix<3> {
         det
     }
 
+    #[must_use]
     pub fn minor(&self, row: usize, col: usize) -> F {
         self.submatrix(row, col).determinant()
     }
 
+    #[must_use]
     pub fn submatrix(&self, row: usize, col: usize) -> Matrix<2> {
         let mut matrix = matrix![];
 
@@ -105,6 +113,7 @@ impl Matrix<3> {
         matrix
     }
 
+    #[must_use]
     pub fn cofactor(&self, row: usize, col: usize) -> F {
         let minor = self.minor(row, col);
 
@@ -121,6 +130,7 @@ impl Matrix<3> {
 }
 
 impl Matrix<4> {
+    #[must_use]
     pub fn identity() -> Self {
         matrix![
             1, 0, 0, 0;
@@ -130,6 +140,7 @@ impl Matrix<4> {
         ]
     }
 
+    #[must_use]
     pub fn translation(x: impl Into<F>, y: impl Into<F>, z: impl Into<F>) -> Self {
         matrix![
             1, 0, 0, x.into();
@@ -139,10 +150,12 @@ impl Matrix<4> {
         ]
     }
 
+    #[must_use]
     pub fn translate(self, x: impl Into<F>, y: impl Into<F>, z: impl Into<F>) -> Self {
         Self::translation(x, y, z) * self
     }
 
+    #[must_use]
     pub fn scaling(x: impl Into<F>, y: impl Into<F>, z: impl Into<F>) -> Self {
         matrix![
             x.into(), 0, 0, 0;
@@ -152,10 +165,12 @@ impl Matrix<4> {
         ]
     }
 
+    #[must_use]
     pub fn scale(self, x: impl Into<F>, y: impl Into<F>, z: impl Into<F>) -> Self {
         Self::scaling(x, y, z) * self
     }
 
+    #[must_use]
     pub fn sheare(
         self,
         xy: impl Into<F>,
@@ -168,6 +183,7 @@ impl Matrix<4> {
         Self::shearing(xy, xz, yx, yz, zx, zy) * self
     }
 
+    #[must_use]
     pub fn rotation_x(r: F) -> Self {
         matrix![
           1,    0,       0,     0;
@@ -177,10 +193,12 @@ impl Matrix<4> {
         ]
     }
 
+    #[must_use]
     pub fn rotate_x(self, r: F) -> Self {
         Self::rotation_x(r) * self
     }
 
+    #[must_use]
     pub fn rotation_y(r: F) -> Self {
         matrix![
             r.cos(),  0, r.sin(), 0;
@@ -190,10 +208,12 @@ impl Matrix<4> {
         ]
     }
 
+    #[must_use]
     pub fn rotate_y(self, r: F) -> Self {
         Self::rotation_y(r) * self
     }
 
+    #[must_use]
     pub fn rotation_z(r: F) -> Self {
         matrix![
             r.cos(), -r.sin(), 0, 0;
@@ -202,6 +222,7 @@ impl Matrix<4> {
             0,         0,      0, 1;
         ]
     }
+    #[must_use]
     pub fn rotate_z(self, r: F) -> Self {
         Self::rotation_z(r) * self
     }
@@ -222,6 +243,7 @@ impl Matrix<4> {
         ]
     }
 
+    #[must_use]
     pub fn determinant(&self) -> F {
         let mut det = 0.0;
 
@@ -232,6 +254,7 @@ impl Matrix<4> {
         det
     }
 
+    #[must_use]
     pub fn cofactor(&self, row: usize, col: usize) -> F {
         let minor = self.minor(row, col);
 
@@ -242,10 +265,12 @@ impl Matrix<4> {
         }
     }
 
+    #[must_use]
     pub fn minor(&self, row: usize, col: usize) -> F {
         self.submatrix(row, col).determinant()
     }
 
+    #[must_use]
     pub fn submatrix(&self, row: usize, col: usize) -> Matrix<3> {
         let mut matrix = matrix![];
 
@@ -261,10 +286,12 @@ impl Matrix<4> {
         matrix
     }
 
+    #[must_use]
     pub fn is_invertible(&self) -> bool {
         self.determinant() != 0.0
     }
 
+    #[must_use]
     pub fn inverse(&self) -> Self {
         assert!(self.is_invertible());
 
@@ -364,7 +391,7 @@ impl<const D: usize> fmt::Display for Matrix<D> {
 
 impl<const D: usize> fmt::Debug for Matrix<D> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", self)
+        write!(f, "{self}")
     }
 }
 
@@ -599,7 +626,7 @@ mod tests {
             6 , -1 ,  5;
         ];
 
-        assert_eq!(a.minor(1, 0), 25.0)
+        assert_eq!(a.minor(1, 0), 25.0);
     }
 
     #[test]
@@ -613,7 +640,7 @@ mod tests {
         assert_eq!(a.minor(0, 0), -12.0);
         assert_eq!(a.cofactor(0, 0), -12.0);
         assert_eq!(a.minor(1, 0), 25.0);
-        assert_eq!(a.cofactor(1, 0), -25.0)
+        assert_eq!(a.cofactor(1, 0), -25.0);
     }
 
     #[test]
@@ -794,42 +821,42 @@ mod tests {
     #[test]
     fn multiplying_by_a_translation_matrix() {
         let transform = Matrix::translation(5, -3, 2);
-        let p = point(-3, 4, 5);
+        let p = pt(-3, 4, 5);
 
-        assert_eq!(transform * p, point(2, 1, 7));
+        assert_eq!(transform * p, pt(2, 1, 7));
     }
 
     #[test]
     fn multipliying_by_the_inverse_of_a_translation_matrix() {
         let transform = Matrix::translation(5, -3, 2);
         let inv = transform.inverse();
-        let p = point(-3, 4, 5);
+        let p = pt(-3, 4, 5);
 
-        assert_eq!(inv * p, point(-8, 7, 3));
+        assert_eq!(inv * p, pt(-8, 7, 3));
     }
 
     #[test]
     fn translation_does_not_affect_vectors() {
         let transform = Matrix::translation(5, -3, 2);
-        let v = vector(-3, 4, 5);
+        let v1 = v(-3, 4, 5);
 
-        assert_eq!(transform * v, v);
+        assert_eq!(transform * v1, v1);
     }
 
     #[test]
-    fn scaling_matrix_applied_to_point() {
+    fn scaling_matrix_applied_to_pt() {
         let transform = Matrix::scaling(2, 3, 4);
-        let p = point(-4, 6, 8);
+        let p = pt(-4, 6, 8);
 
-        assert_eq!(transform * p, point(-8, 18, 32));
+        assert_eq!(transform * p, pt(-8, 18, 32));
     }
 
     #[test]
-    fn scaling_matrix_applied_to_vector() {
+    fn scaling_matrix_applied_to_v() {
         let transform = Matrix::scaling(2, 3, 4);
-        let v = vector(-4, 6, 8);
+        let v1 = v(-4, 6, 8);
 
-        assert_eq!(transform * v, vector(-8, 18, 32));
+        assert_eq!(transform * v1, v(-8, 18, 32));
     }
 
     #[test]
@@ -837,136 +864,136 @@ mod tests {
         let transform = Matrix::scaling(2, 3, 4);
         let inv = transform.inverse();
 
-        let v = vector(-4, 6, 8);
+        let v1 = v(-4, 6, 8);
 
-        assert_eq!(inv * v, vector(-2, 2, 2));
+        assert_eq!(inv * v1, v(-2, 2, 2));
     }
 
     #[test]
     fn reflection_is_scaling_by_a_negative_value() {
         let transform = Matrix::scaling(-1, 1, 1);
-        let p = point(2, 3, 4);
+        let p = pt(2, 3, 4);
 
-        assert_fuzzy_eq!(transform * p, point(-2, 3, 4));
+        assert_fuzzy_eq!(transform * p, pt(-2, 3, 4));
     }
 
     #[test]
     fn rotating_point_around_x_axis() {
-        let p = point(0, 1, 0);
+        let p = pt(0, 1, 0);
         let half_quarter = Matrix::rotation_x(PI / 4.0);
         let full_quarter = Matrix::rotation_x(PI / 2.0);
 
         assert_fuzzy_eq!(
             half_quarter * p,
-            point(0, F::sqrt(2.0) / 2.0, F::sqrt(2.0) / 2.0)
+            pt(0, F::sqrt(2.0) / 2.0, F::sqrt(2.0) / 2.0)
         );
 
-        assert_fuzzy_eq!(full_quarter * p, point(0, 0, 1));
+        assert_fuzzy_eq!(full_quarter * p, pt(0, 0, 1));
     }
 
     #[test]
     fn inverse_of_an_x_rotation_rotates_in_the_opposite_direction() {
-        let p = point(0, 1, 0);
+        let p = pt(0, 1, 0);
         let half_quarter = Matrix::rotation_x(PI / 4.0);
 
         let inv = half_quarter.inverse();
 
-        assert_fuzzy_eq!(inv * p, point(0, F::sqrt(2.0) / 2.0, -(F::sqrt(2.0)) / 2.0))
+        assert_fuzzy_eq!(inv * p, pt(0, F::sqrt(2.0) / 2.0, -(F::sqrt(2.0)) / 2.0));
     }
 
     #[test]
     fn rotating_point_around_y_axis() {
-        let p = point(0, 0, 1);
+        let p = pt(0, 0, 1);
         let half_quarter = Matrix::rotation_y(PI / 4.0);
         let full_quarter = Matrix::rotation_y(PI / 2.0);
 
         assert_fuzzy_eq!(
             half_quarter * p,
-            point(F::sqrt(2.0) / 2.0, 0, F::sqrt(2.0) / 2.0)
+            pt(F::sqrt(2.0) / 2.0, 0, F::sqrt(2.0) / 2.0)
         );
 
-        assert_fuzzy_eq!(full_quarter * p, point(1, 0, 0));
+        assert_fuzzy_eq!(full_quarter * p, pt(1, 0, 0));
     }
 
     #[test]
     fn rotating_point_around_z_axis() {
-        let p = point(0, 1, 0);
+        let p = pt(0, 1, 0);
         let half_quarter = Matrix::rotation_z(PI / 4.0);
         let full_quarter = Matrix::rotation_z(PI / 2.0);
 
         assert_fuzzy_eq!(
             half_quarter * p,
-            point(-F::sqrt(2.0) / 2.0, F::sqrt(2.0) / 2.0, 0)
+            pt(-F::sqrt(2.0) / 2.0, F::sqrt(2.0) / 2.0, 0)
         );
 
-        assert_fuzzy_eq!(full_quarter * p, point(-1, 0, 0));
+        assert_fuzzy_eq!(full_quarter * p, pt(-1, 0, 0));
     }
 
     #[test]
     fn shearing_transformation_moves_x_in_proportion_to_y() {
         let transform = Matrix::shearing(1, 0, 0, 0, 0, 0);
-        let p = point(2, 3, 4);
-        assert_fuzzy_eq!(transform * p, point(5, 3, 4));
+        let p = pt(2, 3, 4);
+        assert_fuzzy_eq!(transform * p, pt(5, 3, 4));
     }
 
     #[test]
     fn a_shearing_transformation_moves_x_in_proportion_to_z() {
         let transform = Matrix::shearing(0, 1, 0, 0, 0, 0);
-        let p = point(2, 3, 4);
-        assert_fuzzy_eq!(transform * p, point(6, 3, 4));
+        let p = pt(2, 3, 4);
+        assert_fuzzy_eq!(transform * p, pt(6, 3, 4));
     }
 
     #[test]
     fn a_shearing_transformation_moves_y_in_proportion_to_x() {
         let transform = Matrix::shearing(0, 0, 1, 0, 0, 0);
-        let p = point(2, 3, 4);
-        assert_fuzzy_eq!(transform * p, point(2, 5, 4));
+        let p = pt(2, 3, 4);
+        assert_fuzzy_eq!(transform * p, pt(2, 5, 4));
     }
 
     #[test]
     fn a_shearing_transformation_moves_y_in_proportion_to_z() {
         let transform = Matrix::shearing(0, 0, 0, 1, 0, 0);
-        let p = point(2, 3, 4);
-        assert_fuzzy_eq!(transform * p, point(2, 7, 4));
+        let p = pt(2, 3, 4);
+        assert_fuzzy_eq!(transform * p, pt(2, 7, 4));
     }
 
     #[test]
     fn a_shearing_transformation_moves_z_in_proportion_to_x() {
         let transform = Matrix::shearing(0, 0, 0, 0, 1, 0);
-        let p = point(2, 3, 4);
-        assert_fuzzy_eq!(transform * p, point(2, 3, 6));
+        let p = pt(2, 3, 4);
+        assert_fuzzy_eq!(transform * p, pt(2, 3, 6));
     }
 
     #[test]
     fn a_shearing_transformation_moves_z_in_proportion_to_y() {
         let transform = Matrix::shearing(0, 0, 0, 0, 0, 1);
-        let p = point(2, 3, 4);
-        assert_fuzzy_eq!(transform * p, point(2, 3, 7));
+        let p = pt(2, 3, 4);
+        assert_fuzzy_eq!(transform * p, pt(2, 3, 7));
     }
 
     #[test]
     fn individual_transformations_are_applied_in_sequence() {
-        let p = point(1, 0, 1);
+        let p = pt(1, 0, 1);
         let a = Matrix::rotation_x(PI / 2.0);
         let b = Matrix::scaling(5, 5, 5);
         let c = Matrix::translation(10, 5, 7);
 
         // rotation
         let p2 = a * p;
-        assert_fuzzy_eq!(p2, point(1, -1, 0));
+        assert_fuzzy_eq!(p2, pt(1, -1, 0));
 
         // scaling
         let p3 = b * p2;
-        assert_fuzzy_eq!(p3, point(5, -5, 0));
+        assert_fuzzy_eq!(p3, pt(5, -5, 0));
 
         // translation
         let p4 = c * p3;
-        assert_fuzzy_eq!(p4, point(15, 0, 7));
+        assert_fuzzy_eq!(p4, pt(15, 0, 7));
     }
 
     #[test]
     fn chained_transformations_must_be_applied_in_reverse_order() {
-        let p = point(1, 0, 1);
+        let p = pt(1, 0, 1);
         // let a = Matrix::rotation_x(PI / 2.0);
         // let b = Matrix::scaling(5, 5, 5);
         // let c = Matrix::translation(10, 5, 7);
@@ -980,6 +1007,6 @@ mod tests {
             .scale(5, 5, 5)
             .translate(10, 5, 7);
 
-        assert_fuzzy_eq!(t * p, point(15, 0, 7));
+        assert_fuzzy_eq!(t * p, pt(15, 0, 7));
     }
 }

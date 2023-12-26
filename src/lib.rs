@@ -1,26 +1,31 @@
 #[macro_use]
 mod utils;
+#[macro_use]
+mod matrix;
 
+mod camera;
 mod canvas;
 mod intersection;
-mod light;
 mod material;
-mod matrix;
 mod ray;
 mod shape;
 mod sphere;
+mod transformation;
 mod tuple;
+mod world;
 
+pub use camera::Camera;
 pub use canvas::{color, Canvas, Color};
-pub use intersection::{Intersection, Intersections};
-pub use light::PointLight;
+pub use intersection::{Comps, Intersection, Intersections};
 pub use material::Material;
 pub use matrix::Matrix;
-pub use ray::Ray;
-pub use shape::Shape;
+pub use ray::{PointLight, Ray};
+pub use shape::{Props, Shape};
 pub use sphere::Sphere;
-pub use tuple::{point, vector, Tuple};
+pub use transformation::view_transform;
+pub use tuple::{point as pt, vector as v, Tuple};
 pub use utils::FuzzyEq;
+pub use world::World;
 
 pub type F = f64;
 pub const PI: F = std::f64::consts::PI;

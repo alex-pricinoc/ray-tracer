@@ -4,6 +4,7 @@ use crate::FuzzyEq;
 use crate::F;
 use std::io;
 use std::io::Write;
+use std::iter::Sum;
 use std::ops::{Add, Mul, Sub};
 
 pub fn color(r: impl Into<F>, g: impl Into<F>, b: impl Into<F>) -> Color {
@@ -35,6 +36,7 @@ impl Color {
         )
     }
 
+    #[must_use]
     pub fn to_u8(self) -> (u8, u8, u8) {
         let c = self.clip(0.0, 1.0);
         (
@@ -89,6 +91,12 @@ impl Mul<Color> for Color {
     }
 }
 
+impl Sum for Color {
+    fn sum<I: Iterator<Item = Self>>(iter: I) -> Self {
+        iter.fold(Color::black(), |acc, c| acc + c)
+    }
+}
+
 impl FuzzyEq<Color> for Color {
     fn fuzzy_eq(&self, other: Self) -> bool {
         self.red.fuzzy_eq(other.red)
@@ -118,7 +126,7 @@ impl Canvas {
         }
     }
 
-    fn pixel_at(&self, x: usize, y: usize) -> Color {
+    pub fn pixel_at(&self, x: usize, y: usize) -> Color {
         self.pixels[y * self.width + x]
     }
 
@@ -256,7 +264,7 @@ mod tests {
 
         for x in 0..c.width {
             for y in 0..c.height {
-                assert_fuzzy_eq!(c.pixel_at(x, y), Color::black())
+                assert_fuzzy_eq!(c.pixel_at(x, y), Color::black());
             }
         }
     }
@@ -312,7 +320,7 @@ P3
 0 0 0 0 0 0 0 0 0 0 0 0 0 0 255
 ";
 
-        assert_eq!(&buf[11..], bytes.as_bytes())
+        assert_eq!(&buf[11..], bytes.as_bytes());
     }
 
     #[test]
@@ -341,6 +349,6 @@ P3
         let mut buf = vec![];
         c.write_ppm(&mut buf).unwrap();
 
-        assert_eq!(buf.last(), Some(&b'\n'))
+        assert_eq!(buf.last(), Some(&b'\n'));
     }
 }
