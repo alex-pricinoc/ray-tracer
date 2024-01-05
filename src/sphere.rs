@@ -16,6 +16,7 @@ impl Sphere {
     pub fn normal_at(&self, world_point: Tuple) -> Tuple {
         let object_point = self.props.transform.inverse() * world_point;
         let object_normal = object_point - pt(0, 0, 0);
+
         let mut world_normal = self.props.transform.inverse().transpose() * object_normal;
         world_normal.w = 0.0;
 
@@ -25,12 +26,14 @@ impl Sphere {
     #[must_use]
     pub fn transform(mut self, transform: Matrix<4>) -> Self {
         self.props.transform = transform;
+
         self
     }
 
     #[must_use]
     pub fn material(mut self, material: Material) -> Self {
         self.props.material = material;
+
         self
     }
 }

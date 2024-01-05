@@ -1,10 +1,11 @@
-use crate::{Ray, Shape, Tuple, F};
+use crate::{Ray, Shape, Tuple, EPSILON, F};
 use std::cmp::{Ord, Ordering};
 
 pub struct Comps<'shape> {
     pub t: F,
     pub object: &'shape dyn Shape,
     pub point: Tuple,
+    pub over_point: Tuple,
     pub eyev: Tuple,
     pub normalv: Tuple,
     pub inside: bool,
@@ -32,15 +33,18 @@ impl<'shape> Intersection<'shape> {
         let mut normalv = object.normal_at(point);
         let mut inside = false;
 
-        if normalv.dot(eyev) < 0. {
+        if normalv.dot(eyev) < 0.0 {
             inside = true;
             normalv = -normalv;
         }
+
+        let over_point = point + normalv * EPSILON;
 
         Comps {
             t,
             object,
             point,
+            over_point,
             eyev,
             normalv,
             inside,
@@ -74,7 +78,7 @@ pub trait Intersections {
 
 impl Intersections for Vec<Intersection<'_>> {
     fn hit(&self) -> Option<&Intersection<'_>> {
-        self.iter().filter(|i| i.t >= 0.0).min_by(Ord::cmp)
+        self.iter().filter(|&i| i.t >= 0.0).min_by(Ord::cmp)
     }
 }
 
@@ -186,5 +190,15 @@ mod tests {
         assert_eq!(comps.point, pt(0, 0, 1));
         assert_eq!(comps.eyev, v(0, 0, -1));
         assert_eq!(comps.normalv, v(0, 0, -1));
+    }
+
+    #[test]
+    fn the_hit_should_offset_the_point() {
+        let r = ray(pt(0, 0, -5), v(0, 0, 1));
+        let shape = Sphere::new().transform(Matrix::translation(0, 0, 1));
+        let i = Intersection::new(5.0, &shape);
+        let comps = i.prepare_computations(r);
+        assert!(comps.over_point.z < -EPSILON / 2.0);
+        assert!(comps.point.z > comps.over_point.z);
     }
 }

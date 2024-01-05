@@ -1,6 +1,6 @@
 use crate::{
-    color, pt, Color, Comps, Intersection, Intersections, Material, Matrix, PointLight, Ray, Shape,
-    Sphere,
+    color, pt, ray, Color, Comps, Intersection, Intersections, Material, Matrix, PointLight, Ray,
+    Shape, Sphere, Tuple,
 };
 
 pub struct World {
@@ -17,6 +17,7 @@ impl World {
         }
     }
 
+    // intersect all objects in the world with the ray, and aggregate the intersections into a single collection
     #[must_use]
     pub fn intersect(&self, ray: Ray) -> Vec<Intersection> {
         self.objects.iter().flat_map(|o| o.intersect(ray)).collect()
@@ -26,22 +27,33 @@ impl World {
         self.lights
             .iter()
             .map(|&l| {
-                comps
-                    .object
-                    .props()
-                    .material
-                    .lighting(l, comps.point, comps.eyev, comps.normalv)
+                comps.object.props().material.lighting(
+                    l,
+                    comps.point,
+                    comps.eyev,
+                    comps.normalv,
+                    self.is_shadowed(l, comps.over_point),
+                )
             })
             .sum()
     }
 
     pub fn color_at(&self, ray: Ray) -> Color {
-        if let Some(hit) = self.intersect(ray).hit() {
-            let comps = hit.prepare_computations(ray);
+        self.intersect(ray).hit().map_or(Color::black(), |&h| {
+            let comps = h.prepare_computations(ray);
             self.shade_hit(&comps)
-        } else {
-            Color::black()
-        }
+        })
+    }
+
+    #[must_use]
+    pub fn is_shadowed(&self, light: PointLight, point: Tuple) -> bool {
+        let v = light.position - point;
+        let distance = v.magnitude();
+        let direction = v.normalize();
+
+        let r = ray(point, direction);
+
+        self.intersect(r).hit().is_some_and(|&h| h.t < distance)
     }
 }
 
@@ -61,15 +73,6 @@ impl Default for World {
         Self {
             objects: vec![s1.into(), s2.into()],
             lights: vec![light],
-        }
-    }
-}
-
-impl<S: Into<Box<dyn Shape>>> From<(Vec<S>, Vec<PointLight>)> for World {
-    fn from((objects, lights): (Vec<S>, Vec<PointLight>)) -> Self {
-        Self {
-            objects: objects.into_iter().map(Into::into).collect(),
-            lights,
         }
     }
 }
@@ -188,5 +191,61 @@ mod tests {
         let inner = w.objects.get(1).unwrap();
 
         assert_fuzzy_eq!(c, inner.props().material.color);
+    }
+
+    #[test]
+    fn there_is_no_shadow_when_nothing_is_collinear_with_point_and_light() {
+        let w = World::default();
+        let p = pt(0, 10, 0);
+        let l = w.lights[0];
+
+        assert!(!w.is_shadowed(l, p));
+    }
+
+    #[test]
+    fn the_shadow_when_an_object_is_between_the_point_and_the_light() {
+        let w = World::default();
+        let p = pt(10, -10, 10);
+        let l = w.lights[0];
+
+        assert!(w.is_shadowed(l, p));
+    }
+
+    #[test]
+    fn there_is_no_shadow_when_an_object_is_behind_the_light() {
+        let w = World::default();
+        let p = pt(-20, 20, -20);
+        let l = w.lights[0];
+
+        assert!(!w.is_shadowed(l, p));
+    }
+
+    #[test]
+    fn there_is_no_shadow_when_an_object_is_behind_the_point() {
+        let w = World::default();
+        let p = pt(-2, 2, -2);
+        let l = w.lights[0];
+
+        assert!(!w.is_shadowed(l, p));
+    }
+
+    #[test]
+    fn shade_hit_is_given_an_intersection_in_shadow() {
+        let s1 = Sphere::new();
+        let s2 = Sphere::new().transform(Matrix::translation(0, 0, 10));
+        let light = point_light(pt(0, 0, -10), color(1, 1, 1));
+
+        let w = World {
+            objects: vec![s1.into(), s2.into()],
+            lights: vec![light],
+        };
+
+        let r = ray(pt(0, 0, 5), v(0, 0, 1));
+        let s = w.objects.get(1).unwrap().as_ref();
+        let i = Intersection::new(4.0, s);
+
+        let comps = i.prepare_computations(r);
+        let c = w.shade_hit(&comps);
+        assert_fuzzy_eq!(c, color(0.1, 0.1, 0.1));
     }
 }

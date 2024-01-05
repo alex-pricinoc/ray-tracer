@@ -19,7 +19,7 @@ pub use canvas::{color, Canvas, Color};
 pub use intersection::{Comps, Intersection, Intersections};
 pub use material::Material;
 pub use matrix::Matrix;
-pub use ray::{PointLight, Ray};
+pub use ray::{point_light, ray, PointLight, Ray};
 pub use shape::{Props, Shape};
 pub use sphere::Sphere;
 pub use transformation::view_transform;

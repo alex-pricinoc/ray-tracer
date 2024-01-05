@@ -1,5 +1,5 @@
 use ray_tracer::{
-    color, pt, v, view_transform, Camera, Material, Matrix, PointLight, Shape, Sphere, World, PI,
+    color, point_light, pt, v, view_transform, Camera, Material, Matrix, Shape, Sphere, World, PI,
 };
 use std::fs::File;
 
@@ -41,10 +41,17 @@ fn main() {
         .transform(Matrix::scaling(0.33, 0.33, 0.33).translate(-1.5, 0.33, -0.75))
         .material(Material::new().rgb(1, 0.8, 0.1).diffuse(0.7).specular(0.3));
 
-    let world = World::from((
-        vec![floor, left_wall, right_wall, left, middle, right],
-        vec![PointLight::new(pt(-10, 10, -10), color(1, 1, 1))],
-    ));
+    let world = World {
+        objects: vec![
+            floor.into(),
+            left_wall.into(),
+            right_wall.into(),
+            left.into(),
+            middle.into(),
+            right.into(),
+        ],
+        lights: vec![point_light(pt(-10, 10, -10), color(1, 1, 1))],
+    };
 
     let camera = Camera::new(canvas_width, canvas_height, PI / 3.0).transform(view_transform(
         pt(0, 1.5, -5),

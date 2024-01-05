@@ -1,9 +1,5 @@
-#![allow(dead_code)]
-
-use crate::FuzzyEq;
-use crate::F;
-use std::io;
-use std::io::Write;
+use crate::{FuzzyEq, F};
+use std::io::{self, Write};
 use std::iter::Sum;
 use std::ops::{Add, Mul, Sub};
 
@@ -138,6 +134,7 @@ impl Canvas {
         self.pixels.chunks_exact(self.width)
     }
 
+    #[allow(dead_code)]
     fn rows_mut(&mut self) -> impl Iterator<Item = &mut [Color]> {
         self.pixels.chunks_exact_mut(self.width)
     }

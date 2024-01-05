@@ -153,7 +153,8 @@ impl Tuple {
     /// were to walk from one end of the vector to the other.
     ///
     /// Vectors with magnitude of 1 are called `unit vectors`.
-    fn magnitude(self) -> F {
+    #[must_use]
+    pub fn magnitude(self) -> F {
         F::sqrt(self.x.powi(2) + self.y.powi(2) + self.z.powi(2) + self.w.powi(2))
     }
 
@@ -179,6 +180,9 @@ impl Tuple {
         self.x * other.x + self.y * other.y + self.z * other.z + self.w * other.w
     }
 
+    /// # Panics
+    ///
+    /// Will panic if arguments are not vectors
     #[must_use]
     pub fn cross(self, other: Self) -> Self {
         assert!(

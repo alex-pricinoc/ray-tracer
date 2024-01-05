@@ -5,10 +5,10 @@ pub struct Camera {
     vsize: usize,
     #[allow(dead_code)]
     field_of_view: F,
-    transform: Matrix<4>,
     half_width: F,
     half_height: F,
     pixel_size: F,
+    transform: Matrix<4>,
 }
 
 impl Camera {
@@ -35,16 +35,17 @@ impl Camera {
             hsize,
             vsize,
             field_of_view,
-            transform: Matrix::identity(),
             half_width,
             half_height,
             pixel_size,
+            transform: Matrix::identity(),
         }
     }
 
     #[must_use]
     pub fn transform(mut self, transform: Matrix<4>) -> Self {
         self.transform = transform;
+
         self
     }
 
@@ -71,6 +72,7 @@ impl Camera {
 
     pub fn render(&self, world: &World) -> Canvas {
         let mut image = Canvas::new(self.hsize, self.vsize);
+
         for y in 0..self.vsize {
             for x in 0..self.hsize {
                 let ray = self.ray_for_pixel(x, y);

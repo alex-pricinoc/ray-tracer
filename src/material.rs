@@ -21,6 +21,7 @@ impl Material {
         position: Tuple,
         eyev: Tuple,
         normalv: Tuple,
+        in_shadow: bool,
     ) -> Color {
         #[allow(clippy::needless_late_init)]
         let ambient_light: Color;
@@ -35,6 +36,11 @@ impl Material {
 
         // compute the ambient contribution
         ambient_light = effective_color * self.ambient;
+
+        if in_shadow {
+            return ambient_light;
+        }
+
         // light_dot_normal represents the cosine of the angle between the
         // light vector and the normal vector. A negative number means the
         // light is on the other side of the surface.
@@ -137,9 +143,10 @@ mod tests {
 
         let eyev = v(0, 0, -1);
         let normalv = v(0, 0, -1);
-        let light = PointLight::new(pt(0, 0, -10), color(1, 1, 1));
+        let light = point_light(pt(0, 0, -10), color(1, 1, 1));
+        let in_shadow = false;
 
-        let result = m.lighting(light, position, eyev, normalv);
+        let result = m.lighting(light, position, eyev, normalv, in_shadow);
         assert_fuzzy_eq!(result, color(1.9, 1.9, 1.9));
     }
 
@@ -150,9 +157,10 @@ mod tests {
 
         let eyev = v(0, F::sqrt(2.0) / 2.0, -F::sqrt(2.0) / 2.0);
         let normalv = v(0, 0, -1);
-        let light = PointLight::new(pt(0, 0, -10), color(1, 1, 1));
+        let light = point_light(pt(0, 0, -10), color(1, 1, 1));
+        let in_shadow = false;
 
-        let result = m.lighting(light, position, eyev, normalv);
+        let result = m.lighting(light, position, eyev, normalv, in_shadow);
         assert_fuzzy_eq!(result, color(1, 1, 1));
     }
 
@@ -163,9 +171,10 @@ mod tests {
 
         let eyev = v(0, 0, -1);
         let normalv = v(0, 0, -1);
-        let light = PointLight::new(pt(0, 10, -10), color(1, 1, 1));
+        let light = point_light(pt(0, 10, -10), color(1, 1, 1));
+        let in_shadow = false;
 
-        let result = m.lighting(light, position, eyev, normalv);
+        let result = m.lighting(light, position, eyev, normalv, in_shadow);
 
         assert_fuzzy_eq!(result, color(0.7364, 0.7364, 0.7364));
     }
@@ -177,9 +186,10 @@ mod tests {
 
         let eyev = v(0, -F::sqrt(2.0) / 2.0, -F::sqrt(2.0) / 2.0);
         let normalv = v(0, 0, -1);
-        let light = PointLight::new(pt(0, 10, -10), color(1, 1, 1));
+        let light = point_light(pt(0, 10, -10), color(1, 1, 1));
+        let in_shadow = false;
 
-        let result = m.lighting(light, position, eyev, normalv);
+        let result = m.lighting(light, position, eyev, normalv, in_shadow);
 
         assert_fuzzy_eq!(result, color(1.6364, 1.6364, 1.6364));
     }
@@ -191,9 +201,25 @@ mod tests {
 
         let eyev = v(0, 0, -1);
         let normalv = v(0, 0, -1);
-        let light = PointLight::new(pt(0, 0, 10), color(1, 1, 1));
+        let light = point_light(pt(0, 0, 10), color(1, 1, 1));
+        let in_shadow = false;
 
-        let result = m.lighting(light, position, eyev, normalv);
+        let result = m.lighting(light, position, eyev, normalv, in_shadow);
+
+        assert_fuzzy_eq!(result, color(0.1, 0.1, 0.1));
+    }
+
+    #[test]
+    fn lighting_with_the_surface_in_shadow() {
+        let m = Material::new();
+        let position = pt(0, 0, 0);
+
+        let eyev = v(0, 0, -1);
+        let normalv = v(0, 0, -1);
+        let light = point_light(pt(0, 0, -10), color(1, 1, 1));
+        let in_shadow = true;
+
+        let result = m.lighting(light, position, eyev, normalv, in_shadow);
 
         assert_fuzzy_eq!(result, color(0.1, 0.1, 0.1));
     }

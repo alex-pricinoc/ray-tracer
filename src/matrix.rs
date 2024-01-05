@@ -1,8 +1,4 @@
-#![allow(dead_code)]
-
-use crate::FuzzyEq;
-use crate::Tuple;
-use crate::F;
+use crate::{FuzzyEq, Tuple, F};
 use std::fmt;
 use std::ops::{Index, IndexMut, Mul};
 
@@ -124,6 +120,7 @@ impl Matrix<3> {
         }
     }
 
+    #[allow(dead_code)]
     fn is_invertible(&self) -> bool {
         self.determinant() == 0.0
     }
@@ -291,6 +288,9 @@ impl Matrix<4> {
         self.determinant() != 0.0
     }
 
+    /// # Panics
+    ///
+    /// Will panic matrix is not invertible
     #[must_use]
     pub fn inverse(&self) -> Self {
         assert!(self.is_invertible());

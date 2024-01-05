@@ -1,5 +1,15 @@
 use crate::{Color, Matrix, Tuple, F};
 
+#[must_use]
+pub fn ray(origin: Tuple, direction: Tuple) -> Ray {
+    Ray::new(origin, direction)
+}
+
+#[must_use]
+pub fn point_light(position: Tuple, intensity: Color) -> PointLight {
+    PointLight::new(position, intensity)
+}
+
 #[derive(Debug, Clone, Copy)]
 pub struct Ray {
     pub origin: Tuple,
@@ -7,6 +17,9 @@ pub struct Ray {
 }
 
 impl Ray {
+    /// # Panics
+    ///
+    /// origin needs to be a point and direction needs to be a vector
     #[must_use]
     pub fn new(origin: Tuple, direction: Tuple) -> Self {
         assert!(
