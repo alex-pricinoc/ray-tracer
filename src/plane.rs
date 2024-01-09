@@ -1,0 +1,131 @@
+use crate::{v, Intersection, Material, Matrix, Props, Ray, Shape, Tuple, EPSILON};
+use std::any::Any;
+
+#[derive(Debug, Default)]
+pub struct Plane {
+    props: Props,
+}
+
+impl Plane {
+    #[must_use]
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    #[must_use]
+    pub fn transform(mut self, transform: Matrix<4>) -> Self {
+        self.props.transform = transform;
+
+        self
+    }
+
+    #[must_use]
+    pub fn material(mut self, material: Material) -> Self {
+        self.props.material = material;
+
+        self
+    }
+}
+
+impl Shape for Plane {
+    fn as_any(&self) -> &dyn Any {
+        self
+    }
+
+    fn as_any_mut(&mut self) -> &mut dyn Any {
+        self
+    }
+
+    fn shape_eq(&self, other: &dyn Any) -> bool {
+        other.downcast_ref::<Self>().is_some()
+    }
+
+    fn props(&self) -> &Props {
+        &self.props
+    }
+
+    fn props_mut(&mut self) -> &mut Props {
+        &mut self.props
+    }
+
+    fn local_intersect(&self, ray: Ray) -> Vec<Intersection> {
+        if ray.direction.y.abs() < EPSILON {
+            return vec![];
+        }
+
+        let t = -ray.origin.y / ray.direction.y;
+
+        let i1 = Intersection::new(t, self);
+
+        vec![i1]
+    }
+
+    fn local_normal_at(&self, _point: Tuple) -> Tuple {
+        v(0.0, 1.0, 0.0)
+    }
+}
+
+impl From<Plane> for Box<dyn Shape> {
+    fn from(value: Plane) -> Box<dyn Shape> {
+        Box::new(value)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::*;
+
+    #[test]
+    fn the_normal_of_a_plane_is_constant_everywhere() {
+        let p = Plane::new();
+
+        let n1 = p.local_normal_at(pt(0, 0, 0));
+        let n2 = p.local_normal_at(pt(10, 0, -10));
+        let n3 = p.local_normal_at(pt(-5, 0, 150));
+
+        assert_eq!(n1, v(0, 1, 0));
+        assert_eq!(n2, v(0, 1, 0));
+        assert_eq!(n3, v(0, 1, 0));
+    }
+
+    #[test]
+    fn intersect_with_a_ray_parallel_to_the_plane() {
+        let p = Plane::new();
+        let r = ray(pt(0, 10, 0), v(0, 0, 1));
+        let xs = p.local_intersect(r);
+
+        assert!(xs.is_empty());
+    }
+
+    #[test]
+    fn intersect_with_a_coplanar_ray() {
+        let p = Plane::new();
+        let r = ray(pt(0, 0, 0), v(0, 0, 1));
+        let xs = p.local_intersect(r);
+
+        assert!(xs.is_empty());
+    }
+
+    #[test]
+    fn a_ray_intersecting_a_plane_from_above() {
+        let p = Plane::new();
+        let r = ray(pt(0, 1, 0), v(0, -1, 0));
+        let xs = p.local_intersect(r);
+
+        assert_eq!(xs.len(), 1);
+        assert_eq!(xs[0].t, 1.0);
+        assert_eq!(xs[0].object, &p as &dyn Shape);
+    }
+
+    #[test]
+    fn a_ray_intersecting_a_plane_from_below() {
+        let p = Plane::new();
+        let r = ray(pt(0, -1, 0), v(0, 1, 0));
+        let xs = p.local_intersect(r);
+
+        assert_eq!(xs.len(), 1);
+        assert_eq!(xs[0].t, 1.0);
+        assert_eq!(xs[0].object, &p as &dyn Shape);
+    }
+}
