@@ -1,8 +1,8 @@
-use crate::{FuzzyEq, Intersection, Material, Matrix, Ray, Tuple};
+use crate::{Intersection, Material, Matrix, Ray, Tuple};
 use std::any::Any;
 use std::fmt;
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct Props {
     pub material: Material,
     pub transform: Matrix<4>,
@@ -50,12 +50,6 @@ impl fmt::Debug for dyn Shape + '_ {
 impl PartialEq for dyn Shape + '_ {
     fn eq(&self, other: &Self) -> bool {
         self.props() == other.props() && self.shape_eq(other.as_any())
-    }
-}
-
-impl PartialEq for Props {
-    fn eq(&self, other: &Self) -> bool {
-        self.material == other.material && self.transform.fuzzy_eq(other.transform)
     }
 }
 
@@ -120,7 +114,7 @@ mod tests {
     fn the_default_transformation() {
         let s = TestShape::new();
 
-        assert_fuzzy_eq!(s.props().transform, Matrix::identity())
+        assert_eq!(s.props().transform, Matrix::identity());
     }
 
     #[test]
@@ -128,7 +122,7 @@ mod tests {
         let mut s = TestShape::new();
         s.props_mut().transform = Matrix::translation(2, 3, 4);
 
-        assert_fuzzy_eq!(s.props().transform, Matrix::translation(2, 3, 4))
+        assert_eq!(s.props().transform, Matrix::translation(2, 3, 4));
     }
 
     #[test]
@@ -136,7 +130,7 @@ mod tests {
         let s = TestShape::new();
         let m = s.props().material;
 
-        assert_eq!(m, Material::new())
+        assert_eq!(m, Material::new());
     }
 
     #[test]
@@ -145,7 +139,7 @@ mod tests {
         let m = Material::new().ambient(1);
         s.props_mut().material = m;
 
-        assert_eq!(s.props().material, m)
+        assert_eq!(s.props().material, m);
     }
 
     #[test]
@@ -185,6 +179,6 @@ mod tests {
         s.props_mut().transform = m;
         let n = s.normal_at(pt(0, F::sqrt(2.0) / 2.0, -F::sqrt(2.0) / 2.0));
 
-        assert_fuzzy_eq!(n, v(0, 0.97014, -0.24254));
+        assert_eq!(n, v(0, 0.97014, -0.24254));
     }
 }

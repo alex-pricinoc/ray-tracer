@@ -16,6 +16,8 @@ fn main() {
 
     let cross = (0..canvas_pixels).flat_map(|y| (0..canvas_pixels).map(move |x| (x, y)));
 
+    let object = Sphere::new();
+
     for (x, y) in cross {
         // compute the world x coordinate (left = -half, right = half)
         let world_x = -half + pixel_size * x as F;
@@ -36,7 +38,7 @@ fn main() {
                 .object
                 .props()
                 .material
-                .lighting(light, point, eye, normal, false);
+                .lighting(&object, light, point, eye, normal, false);
 
             canvas.write_pixel(x, y, color);
         }

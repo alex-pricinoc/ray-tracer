@@ -8,7 +8,7 @@ pub fn color(r: impl Into<F>, g: impl Into<F>, b: impl Into<F>) -> Color {
 }
 
 #[must_use]
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy)]
 pub struct Color {
     pub red: F,
     pub green: F,
@@ -18,6 +18,10 @@ pub struct Color {
 impl Color {
     pub fn new(red: F, green: F, blue: F) -> Self {
         Self { red, green, blue }
+    }
+
+    pub fn white() -> Self {
+        color(1, 1, 1)
     }
 
     pub fn black() -> Self {
@@ -92,9 +96,8 @@ impl Sum for Color {
         iter.fold(Color::black(), |acc, c| acc + c)
     }
 }
-
-impl FuzzyEq<Color> for Color {
-    fn fuzzy_eq(&self, other: Self) -> bool {
+impl PartialEq for Color {
+    fn eq(&self, other: &Self) -> bool {
         self.red.fuzzy_eq(other.red)
             && self.green.fuzzy_eq(other.green)
             && self.blue.fuzzy_eq(other.blue)
@@ -237,9 +240,9 @@ mod tests {
     fn colors_are_tuples() {
         let color = color(-0.5, 0.4, 1.7);
 
-        assert_fuzzy_eq!(color.red, -0.5);
-        assert_fuzzy_eq!(color.green, 0.4);
-        assert_fuzzy_eq!(color.blue, 1.7);
+        assert_eq!(color.red, -0.5);
+        assert_eq!(color.green, 0.4);
+        assert_eq!(color.blue, 1.7);
     }
 
     #[test]
@@ -249,7 +252,7 @@ mod tests {
 
         let expected = color(0.9, 0.2, 0.04);
 
-        assert_fuzzy_eq!(c1 * c2, expected);
+        assert_eq!(c1 * c2, expected);
     }
 
     #[test]
@@ -261,7 +264,7 @@ mod tests {
 
         for x in 0..c.width {
             for y in 0..c.height {
-                assert_fuzzy_eq!(c.pixel_at(x, y), Color::black());
+                assert_eq!(c.pixel_at(x, y), Color::black());
             }
         }
     }
@@ -275,7 +278,7 @@ mod tests {
 
         let expected = color(1.0, 0.0, 0.0);
 
-        assert_fuzzy_eq!(expected, c.pixel_at(2, 3));
+        assert_eq!(expected, c.pixel_at(2, 3));
     }
 
     #[test]

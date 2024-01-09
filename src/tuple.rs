@@ -16,7 +16,7 @@ impl<A: Into<F>, B: Into<F>, C: Into<F>, D: Into<F>> From<(A, B, C, D)> for Tupl
     }
 }
 
-#[derive(Debug, Copy, Clone, PartialEq)]
+#[derive(Debug, Copy, Clone)]
 pub struct Tuple {
     pub x: F,
     pub y: F,
@@ -53,8 +53,8 @@ impl Tuple {
     }
 }
 
-impl FuzzyEq<Tuple> for Tuple {
-    fn fuzzy_eq(&self, other: Self) -> bool {
+impl PartialEq for Tuple {
+    fn eq(&self, other: &Self) -> bool {
         self.x.fuzzy_eq(other.x)
             && self.y.fuzzy_eq(other.y)
             && self.z.fuzzy_eq(other.z)
@@ -249,7 +249,7 @@ mod tests {
         let tuple_one = Tuple::from((3.0, -2.0, 5.0, 1.0));
         let tuple_two = Tuple::from((-2.0, 3.0, 1.0, 0.0));
 
-        assert_fuzzy_eq!(tuple_one + tuple_two, Tuple::from((1.0, 1.0, 6.0, 1.0)));
+        assert_eq!(tuple_one + tuple_two, Tuple::from((1.0, 1.0, 6.0, 1.0)));
     }
 
     #[test]
@@ -257,7 +257,7 @@ mod tests {
         let point_one = point(3.0, 2.0, 1.0);
         let point_two = point(5.0, 6.0, 7.0);
 
-        assert_fuzzy_eq!(point_one - point_two, vector(-2.0, -4.0, -6.0));
+        assert_eq!(point_one - point_two, vector(-2.0, -4.0, -6.0));
     }
 
     #[test]
@@ -265,7 +265,7 @@ mod tests {
         let p = point(3.0, 2.0, 1.0);
         let v = vector(5.0, 6.0, 7.0);
 
-        assert_fuzzy_eq!(p - v, point(-2.0, -4.0, -6.0));
+        assert_eq!(p - v, point(-2.0, -4.0, -6.0));
     }
 
     #[test]
@@ -273,7 +273,7 @@ mod tests {
         let v1 = vector(3.0, 2.0, 1.0);
         let v2 = vector(5.0, 6.0, 7.0);
 
-        assert_fuzzy_eq!(v1 - v2, vector(-2.0, -4.0, -6.0));
+        assert_eq!(v1 - v2, vector(-2.0, -4.0, -6.0));
     }
 
     #[test]
@@ -281,70 +281,70 @@ mod tests {
         let zero = vector(0.0, 0.0, 0.0);
         let v = vector(1.0, -2.0, 3.0);
 
-        assert_fuzzy_eq!(zero - v, vector(-1.0, 2.0, -3.0));
+        assert_eq!(zero - v, vector(-1.0, 2.0, -3.0));
     }
 
     #[test]
     fn negating_tuple() {
         let a = Tuple::from((1.0, -2.0, 3.0, -4.0));
 
-        assert_fuzzy_eq!(-a, Tuple::from((-1.0, 2.0, -3.0, 4.0)));
+        assert_eq!(-a, Tuple::from((-1.0, 2.0, -3.0, 4.0)));
     }
 
     #[test]
     fn multiplying_a_tuple_by_a_scalar() {
         let a = Tuple::from((1.0, -2.0, 3.0, -4.0));
 
-        assert_fuzzy_eq!(a * 3.5, Tuple::from((3.5, -7.0, 10.5, -14.0)));
+        assert_eq!(a * 3.5, Tuple::from((3.5, -7.0, 10.5, -14.0)));
     }
 
     #[test]
     fn multiplying_a_tuple_by_a_fraction() {
         let a = Tuple::from((1.0, -2.0, 3.0, -4.0));
 
-        assert_fuzzy_eq!(a * 0.5, Tuple::from((0.5, -1.0, 1.5, -2.0)));
+        assert_eq!(a * 0.5, Tuple::from((0.5, -1.0, 1.5, -2.0)));
     }
 
     #[test]
     fn dividing_a_tuple_by_a_scalar() {
         let a = Tuple::from((1.0, -2.0, 3.0, -4.0));
 
-        assert_fuzzy_eq!(a / 2.0, Tuple::from((0.5, -1.0, 1.5, -2.0)));
+        assert_eq!(a / 2.0, Tuple::from((0.5, -1.0, 1.5, -2.0)));
     }
 
     #[test]
     fn computing_the_magnitude_of_vector_1() {
         let v = vector(1.0, 0.0, 0.0);
 
-        assert_fuzzy_eq!(v.magnitude(), 1.0);
+        assert_eq!(v.magnitude(), 1.0);
     }
 
     #[test]
     fn computing_the_magnitude_of_vector_2() {
         let v = vector(0.0, 1.0, 0.0);
 
-        assert_fuzzy_eq!(v.magnitude(), 1.0);
+        assert_eq!(v.magnitude(), 1.0);
     }
 
     #[test]
     fn computing_the_magnitude_of_vector_3() {
         let v = vector(0.0, 0.0, 1.0);
 
-        assert_fuzzy_eq!(v.magnitude(), 1.0);
+        assert_eq!(v.magnitude(), 1.0);
     }
 
     #[test]
     fn computing_the_magnitude_of_vector_4() {
         let v = vector(1.0, 2.0, 3.0);
 
-        assert_fuzzy_eq!(v.magnitude(), F::sqrt(14.0));
+        assert_eq!(v.magnitude(), F::sqrt(14.0));
     }
 
     #[test]
     fn computing_the_magnitude_of_vector_5() {
         let v = vector(-1.0, -2.0, -3.0);
 
-        assert_fuzzy_eq!(v.magnitude(), F::sqrt(14.0));
+        assert_eq!(v.magnitude(), F::sqrt(14.0));
     }
 
     #[test]
@@ -352,14 +352,14 @@ mod tests {
         let v = vector(4.0, 0.0, 0.0);
         let expected = vector(1.0, 0.0, 0.0);
 
-        assert_fuzzy_eq!(v.normalize(), expected);
+        assert_eq!(v.normalize(), expected);
     }
 
     #[test]
     fn normalize_vector_2() {
         let v = vector(1.0, 2.0, 3.0);
 
-        assert_fuzzy_eq!(v.normalize(), vector(0.26726, 0.53452, 0.80178));
+        assert_eq!(v.normalize(), vector(0.26726, 0.53452, 0.80178));
     }
 
     #[test]
@@ -367,7 +367,7 @@ mod tests {
         let v = vector(1.0, 2.0, 3.0);
         let norm = v.normalize();
 
-        assert_fuzzy_eq!(norm.magnitude(), 1.0);
+        assert_eq!(norm.magnitude(), 1.0);
     }
 
     #[test]
@@ -375,7 +375,7 @@ mod tests {
         let a = vector(1.0, 2.0, 3.0);
         let b = vector(2.0, 3.0, 4.0);
 
-        assert_fuzzy_eq!(a.dot(b), 20.0);
+        assert_eq!(a.dot(b), 20.0);
     }
 
     #[test]
@@ -383,8 +383,8 @@ mod tests {
         let a = vector(1.0, 2.0, 3.0);
         let b = vector(2.0, 3.0, 4.0);
 
-        assert_fuzzy_eq!(a.cross(b), vector(-1.0, 2.0, -1.0));
-        assert_fuzzy_eq!(b.cross(a), vector(1.0, -2.0, 1.0));
+        assert_eq!(a.cross(b), vector(-1.0, 2.0, -1.0));
+        assert_eq!(b.cross(a), vector(1.0, -2.0, 1.0));
     }
 
     #[test]
@@ -393,7 +393,7 @@ mod tests {
         let n = vector(0, 1, 0);
         let r = v.reflect(n);
 
-        assert_fuzzy_eq!(r, vector(1, 1, 0));
+        assert_eq!(r, vector(1, 1, 0));
     }
 
     #[test]
@@ -402,6 +402,6 @@ mod tests {
         let n = vector(F::sqrt(2.0) / 2.0, F::sqrt(2.0) / 2.0, 0);
         let r = v.reflect(n);
 
-        assert_fuzzy_eq!(r, vector(1, 0, 0));
+        assert_eq!(r, vector(1, 0, 0));
     }
 }

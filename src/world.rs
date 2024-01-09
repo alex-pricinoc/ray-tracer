@@ -28,6 +28,7 @@ impl World {
             .iter()
             .map(|&l| {
                 comps.object.props().material.lighting(
+                    comps.object,
                     l,
                     comps.point,
                     comps.eyev,
@@ -135,7 +136,7 @@ mod tests {
         let comps = i.prepare_computations(r);
         let c = w.shade_hit(&comps);
 
-        assert_fuzzy_eq!(c, color(0.38066, 0.47583, 0.2855));
+        assert_eq!(c, color(0.38066, 0.47583, 0.2855));
     }
 
     #[test]
@@ -151,7 +152,7 @@ mod tests {
 
         let comps = i.prepare_computations(r);
         let c = w.shade_hit(&comps);
-        assert_fuzzy_eq!(c, color(0.90498, 0.90498, 0.90498));
+        assert_eq!(c, color(0.90498, 0.90498, 0.90498));
     }
 
     #[test]
@@ -169,7 +170,7 @@ mod tests {
         let r = Ray::new(pt(0, 0, -5), v(0, 0, 1));
         let c = w.color_at(r);
 
-        assert_fuzzy_eq!(c, color(0.38066, 0.47583, 0.2855));
+        assert_eq!(c, color(0.38066, 0.47583, 0.2855));
     }
 
     #[test]
@@ -190,7 +191,7 @@ mod tests {
 
         let inner = w.objects.get(1).unwrap();
 
-        assert_fuzzy_eq!(c, inner.props().material.color);
+        assert_eq!(c, inner.props().material.color);
     }
 
     #[test]
@@ -246,6 +247,6 @@ mod tests {
 
         let comps = i.prepare_computations(r);
         let c = w.shade_hit(&comps);
-        assert_fuzzy_eq!(c, color(0.1, 0.1, 0.1));
+        assert_eq!(c, color(0.1, 0.1, 0.1));
     }
 }

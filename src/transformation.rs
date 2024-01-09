@@ -30,7 +30,7 @@ mod tests {
 
         let t = view_transform(from, to, up);
 
-        assert_fuzzy_eq!(t, Matrix::identity());
+        assert_eq!(t, Matrix::identity());
     }
 
     #[test]
@@ -40,7 +40,7 @@ mod tests {
         let up = v(0, 1, 0);
         let t = view_transform(from, to, up);
 
-        assert_fuzzy_eq!(t, Matrix::scaling(-1, 1, -1));
+        assert_eq!(t, Matrix::scaling(-1, 1, -1));
     }
 
     #[test]
@@ -51,7 +51,7 @@ mod tests {
 
         let t = view_transform(from, to, up);
 
-        assert_fuzzy_eq!(t, Matrix::translation(0, 0, -8));
+        assert_eq!(t, Matrix::translation(0, 0, -8));
     }
 
     #[test]
@@ -68,6 +68,6 @@ mod tests {
            0.00000, 0.00000,  0.00000,  1.00000;
         ];
 
-        assert_fuzzy_eq!(t, m);
+        assert_eq!(t, m);
     }
 }

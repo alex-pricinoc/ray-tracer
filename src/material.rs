@@ -1,4 +1,4 @@
-use crate::{color, Color, PointLight, Tuple, F};
+use crate::{color, Color, Pattern, PointLight, Shape, Tuple, F};
 
 #[derive(Debug, PartialEq, Clone, Copy)]
 pub struct Material {
@@ -7,6 +7,7 @@ pub struct Material {
     pub diffuse: F,
     pub specular: F,
     pub shininess: F,
+    pub pattern: Option<Pattern>,
 }
 
 impl Material {
@@ -17,8 +18,9 @@ impl Material {
 
     pub fn lighting(
         &self,
+        object: &dyn Shape,
         light: PointLight,
-        position: Tuple,
+        point: Tuple,
         eyev: Tuple,
         normalv: Tuple,
         in_shadow: bool,
@@ -28,11 +30,15 @@ impl Material {
         let diffuse_light: Color;
         let specular_light: Color;
 
+        let color = self
+            .pattern
+            .map_or(self.color, |p| p.color_at_object(object, point));
+
         // combine the surface color with the light's color/intensity
-        let effective_color = self.color * light.intensity;
+        let effective_color = color * light.intensity;
 
         // find the direction to the light source
-        let lightv = (light.position - position).normalize();
+        let lightv = (light.position - point).normalize();
 
         // compute the ambient contribution
         ambient_light = effective_color * self.ambient;
@@ -74,36 +80,49 @@ impl Material {
     #[must_use]
     pub fn rgb(mut self, r: impl Into<F>, g: impl Into<F>, b: impl Into<F>) -> Self {
         self.color = color(r, g, b);
+
         self
     }
 
     #[must_use]
     pub fn color(mut self, color: Color) -> Self {
         self.color = color;
+
         self
     }
 
     #[must_use]
     pub fn ambient(mut self, ambient: impl Into<F>) -> Self {
         self.ambient = ambient.into();
+
         self
     }
 
     #[must_use]
     pub fn diffuse(mut self, diffuse: impl Into<F>) -> Self {
         self.diffuse = diffuse.into();
+
         self
     }
 
     #[must_use]
     pub fn specular(mut self, specular: impl Into<F>) -> Self {
         self.specular = specular.into();
+
         self
     }
 
     #[must_use]
     pub fn shininess(mut self, shininess: impl Into<F>) -> Self {
         self.shininess = shininess.into();
+
+        self
+    }
+
+    #[must_use]
+    pub fn pattern(mut self, pattern: Pattern) -> Self {
+        self.pattern = Some(pattern);
+
         self
     }
 }
@@ -116,6 +135,7 @@ impl Default for Material {
             diffuse: 0.9,
             specular: 0.9,
             shininess: 200.0,
+            pattern: None,
         }
     }
 }
@@ -145,9 +165,10 @@ mod tests {
         let normalv = v(0, 0, -1);
         let light = point_light(pt(0, 0, -10), color(1, 1, 1));
         let in_shadow = false;
+        let object = Sphere::new();
 
-        let result = m.lighting(light, position, eyev, normalv, in_shadow);
-        assert_fuzzy_eq!(result, color(1.9, 1.9, 1.9));
+        let result = m.lighting(&object, light, position, eyev, normalv, in_shadow);
+        assert_eq!(result, color(1.9, 1.9, 1.9));
     }
 
     #[test]
@@ -159,9 +180,10 @@ mod tests {
         let normalv = v(0, 0, -1);
         let light = point_light(pt(0, 0, -10), color(1, 1, 1));
         let in_shadow = false;
+        let object = Sphere::new();
 
-        let result = m.lighting(light, position, eyev, normalv, in_shadow);
-        assert_fuzzy_eq!(result, color(1, 1, 1));
+        let result = m.lighting(&object, light, position, eyev, normalv, in_shadow);
+        assert_eq!(result, color(1, 1, 1));
     }
 
     #[test]
@@ -173,10 +195,11 @@ mod tests {
         let normalv = v(0, 0, -1);
         let light = point_light(pt(0, 10, -10), color(1, 1, 1));
         let in_shadow = false;
+        let object = Sphere::new();
 
-        let result = m.lighting(light, position, eyev, normalv, in_shadow);
+        let result = m.lighting(&object, light, position, eyev, normalv, in_shadow);
 
-        assert_fuzzy_eq!(result, color(0.7364, 0.7364, 0.7364));
+        assert_eq!(result, color(0.7364, 0.7364, 0.7364));
     }
 
     #[test]
@@ -188,10 +211,11 @@ mod tests {
         let normalv = v(0, 0, -1);
         let light = point_light(pt(0, 10, -10), color(1, 1, 1));
         let in_shadow = false;
+        let object = Sphere::new();
 
-        let result = m.lighting(light, position, eyev, normalv, in_shadow);
+        let result = m.lighting(&object, light, position, eyev, normalv, in_shadow);
 
-        assert_fuzzy_eq!(result, color(1.6364, 1.6364, 1.6364));
+        assert_eq!(result, color(1.6364, 1.6364, 1.6364));
     }
 
     #[test]
@@ -203,10 +227,11 @@ mod tests {
         let normalv = v(0, 0, -1);
         let light = point_light(pt(0, 0, 10), color(1, 1, 1));
         let in_shadow = false;
+        let object = Sphere::new();
 
-        let result = m.lighting(light, position, eyev, normalv, in_shadow);
+        let result = m.lighting(&object, light, position, eyev, normalv, in_shadow);
 
-        assert_fuzzy_eq!(result, color(0.1, 0.1, 0.1));
+        assert_eq!(result, color(0.1, 0.1, 0.1));
     }
 
     #[test]
@@ -218,9 +243,30 @@ mod tests {
         let normalv = v(0, 0, -1);
         let light = point_light(pt(0, 0, -10), color(1, 1, 1));
         let in_shadow = true;
+        let object = Sphere::new();
 
-        let result = m.lighting(light, position, eyev, normalv, in_shadow);
+        let result = m.lighting(&object, light, position, eyev, normalv, in_shadow);
 
-        assert_fuzzy_eq!(result, color(0.1, 0.1, 0.1));
+        assert_eq!(result, color(0.1, 0.1, 0.1));
+    }
+
+    #[test]
+    fn lighting_with_a_pattern_applied() {
+        let m = Material::new()
+            .pattern(stripe_pattern(color(1, 1, 1), color(0, 0, 0)))
+            .ambient(1)
+            .diffuse(0)
+            .specular(0);
+
+        let eyev = v(0, 0, -1);
+        let normalv = v(0, 0, -1);
+        let light = point_light(pt(0, 0, -10), color(1, 1, 1));
+        let object = Sphere::new();
+
+        let c1 = m.lighting(&object, light, pt(0.9, 0, 0), eyev, normalv, false);
+        let c2 = m.lighting(&object, light, pt(1.1, 0, 0), eyev, normalv, false);
+
+        assert_eq!(c1, color(1, 1, 1));
+        assert_eq!(c2, color(0, 0, 0));
     }
 }

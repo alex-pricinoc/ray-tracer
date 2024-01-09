@@ -152,7 +152,7 @@ mod tests {
     fn sphere_default_transformation() {
         let s = Sphere::new();
 
-        assert_fuzzy_eq!(s.props.transform, Matrix::identity());
+        assert_eq!(s.props.transform, Matrix::identity());
     }
 
     #[test]
@@ -160,7 +160,7 @@ mod tests {
         let t = Matrix::translation(2, 3, 4);
         let s = Sphere::new().transform(t);
 
-        assert_fuzzy_eq!(s.props.transform, t);
+        assert_eq!(s.props.transform, t);
     }
 
     #[test]
@@ -242,7 +242,7 @@ mod tests {
         let s = Sphere::new().transform(Matrix::translation(0, 1, 0));
         let n = s.normal_at(pt(0, 1.70711, -0.70711));
 
-        assert_fuzzy_eq!(n, v(0, 0.70711, -0.70711));
+        assert_eq!(n, v(0, 0.70711, -0.70711));
     }
 
     #[test]
@@ -250,7 +250,7 @@ mod tests {
         let s = Sphere::new().transform(Matrix::scaling(1, 0.5, 1) * Matrix::rotation_z(PI / 5.0));
         let n = s.normal_at(pt(0, F::sqrt(2.0) / 2.0, -F::sqrt(2.0) / 2.0));
 
-        assert_fuzzy_eq!(n, v(0, 0.97014, -0.24254));
+        assert_eq!(n, v(0, 0.97014, -0.24254));
     }
 
     #[test]
