@@ -84,26 +84,26 @@ impl Material {
     }
 
     #[must_use]
-    pub fn ambient(mut self, ambient: F) -> Self {
-        self.ambient = ambient;
+    pub fn ambient(mut self, ambient: impl Into<F>) -> Self {
+        self.ambient = ambient.into();
         self
     }
 
     #[must_use]
-    pub fn diffuse(mut self, diffuse: F) -> Self {
-        self.diffuse = diffuse;
+    pub fn diffuse(mut self, diffuse: impl Into<F>) -> Self {
+        self.diffuse = diffuse.into();
         self
     }
 
     #[must_use]
-    pub fn specular(mut self, specular: F) -> Self {
-        self.specular = specular;
+    pub fn specular(mut self, specular: impl Into<F>) -> Self {
+        self.specular = specular.into();
         self
     }
 
     #[must_use]
-    pub fn shininess(mut self, shininess: F) -> Self {
-        self.shininess = shininess;
+    pub fn shininess(mut self, shininess: impl Into<F>) -> Self {
+        self.shininess = shininess.into();
         self
     }
 }

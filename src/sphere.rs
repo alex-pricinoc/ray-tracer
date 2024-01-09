@@ -13,17 +13,6 @@ impl Sphere {
     }
 
     #[must_use]
-    pub fn normal_at(&self, world_point: Tuple) -> Tuple {
-        let object_point = self.props.transform.inverse() * world_point;
-        let object_normal = object_point - pt(0, 0, 0);
-
-        let mut world_normal = self.props.transform.inverse().transpose() * object_normal;
-        world_normal.w = 0.0;
-
-        world_normal.normalize()
-    }
-
-    #[must_use]
     pub fn transform(mut self, transform: Matrix<4>) -> Self {
         self.props.transform = transform;
 
@@ -51,10 +40,6 @@ impl Shape for Sphere {
         other.downcast_ref::<Self>().is_some()
     }
 
-    fn normal_at(&self, world_point: Tuple) -> Tuple {
-        self.normal_at(world_point)
-    }
-
     fn props(&self) -> &Props {
         &self.props
     }
@@ -63,9 +48,7 @@ impl Shape for Sphere {
         &mut self.props
     }
 
-    fn intersect(&self, ray: Ray) -> Vec<Intersection> {
-        let ray = ray.transform(self.props.transform.inverse());
-
+    fn local_intersect(&self, ray: Ray) -> Vec<Intersection> {
         let sphere_to_ray = ray.origin - pt(0, 0, 0);
 
         let a = ray.direction.dot(ray.direction);
@@ -85,6 +68,10 @@ impl Shape for Sphere {
         let i2 = Intersection::new(t2, self);
 
         vec![i1, i2]
+    }
+
+    fn local_normal_at(&self, point: Tuple) -> Tuple {
+        point - pt(0, 0, 0)
     }
 }
 
