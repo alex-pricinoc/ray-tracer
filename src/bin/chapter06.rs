@@ -10,13 +10,13 @@ fn main() {
     let pixel_size = wall_size / canvas_pixels as F;
     let mut canvas = Canvas::new(canvas_pixels, canvas_pixels);
 
-    let shape = Sphere::new().material(Material::new().rgb(1, 0.2, 1));
+    let shape = Sphere::default().material(Material::default().rgb(1, 0.2, 1));
 
     let light = point_light(pt(-10, 10, -10), color(1, 1, 1));
 
     let cross = (0..canvas_pixels).flat_map(|y| (0..canvas_pixels).map(move |x| (x, y)));
 
-    let object = Sphere::new();
+    let object = Sphere::default();
 
     for (x, y) in cross {
         // compute the world x coordinate (left = -half, right = half)

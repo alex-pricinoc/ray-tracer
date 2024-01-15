@@ -1,6 +1,9 @@
-use crate::{Intersection, Material, Matrix, Ray, Tuple};
+pub mod plane;
+pub mod sphere;
+
+use crate::{Intersection, Material, Matrix, Ray, Tuple, F};
 use std::any::Any;
-use std::fmt;
+use std::fmt::Debug;
 
 #[derive(Debug, PartialEq)]
 pub struct Props {
@@ -8,28 +11,31 @@ pub struct Props {
     pub transform: Matrix<4>,
 }
 
-pub trait Shape {
+pub trait Shape: Debug + Sync + Send {
+    fn as_shape(&self) -> &dyn Shape;
     fn as_any(&self) -> &dyn Any;
     fn as_any_mut(&mut self) -> &mut dyn Any;
     fn shape_eq(&self, other: &dyn Any) -> bool;
     fn props(&self) -> &Props;
     fn props_mut(&mut self) -> &mut Props;
+    fn local_intersect(&self, ray: Ray) -> Vec<Intersection>;
+    fn local_normal_at(&self, point: Tuple) -> Tuple;
     fn intersect(&self, ray: Ray) -> Vec<Intersection> {
         // convert into object space
         let ray = ray.transform(self.props().transform.inverse());
         self.local_intersect(ray)
     }
-    fn local_intersect(&self, ray: Ray) -> Vec<Intersection>;
     fn normal_at(&self, point: Tuple) -> Tuple {
         let local_point = self.props().transform.inverse() * point;
         let local_normal = self.local_normal_at(local_point);
-
         let mut world_normal = self.props().transform.inverse().transpose() * local_normal;
         world_normal.w = 0.0;
 
         world_normal.normalize()
     }
-    fn local_normal_at(&self, point: Tuple) -> Tuple;
+    fn intersection(&self, t: F) -> Intersection<'_> {
+        Intersection::new(t, self.as_shape())
+    }
 }
 
 impl Default for Props {
@@ -38,12 +44,6 @@ impl Default for Props {
             transform: Matrix::identity(),
             material: Material::default(),
         }
-    }
-}
-
-impl fmt::Debug for dyn Shape + '_ {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "Shape {{ }}",)
     }
 }
 
@@ -78,6 +78,10 @@ mod tests {
         }
 
         impl Shape for TestShape {
+            fn as_shape(&self) -> &dyn Shape {
+                self
+            }
+
             fn as_any(&self) -> &dyn Any {
                 self
             }
@@ -130,13 +134,13 @@ mod tests {
         let s = TestShape::new();
         let m = s.props().material;
 
-        assert_eq!(m, Material::new());
+        assert_eq!(m, Material::default());
     }
 
     #[test]
     fn assigning_a_material() {
         let mut s = TestShape::new();
-        let m = Material::new().ambient(1);
+        let m = Material::default().ambient(1);
         s.props_mut().material = m;
 
         assert_eq!(s.props().material, m);
@@ -152,8 +156,8 @@ mod tests {
             SAVED_RAY = None;
             s.intersect(r);
 
-            assert_eq!(SAVED_RAY.unwrap().origin, pt(0, 0, -2.5));
-            assert_eq!(SAVED_RAY.unwrap().direction, v(0, 0, 0.5));
+            assert_fuzzy_eq!(SAVED_RAY.unwrap().origin, pt(0, 0, -2.5));
+            assert_fuzzy_eq!(SAVED_RAY.unwrap().direction, v(0, 0, 0.5));
         }
     }
 
@@ -167,8 +171,8 @@ mod tests {
             SAVED_RAY = None;
             s.intersect(r);
 
-            assert_eq!(SAVED_RAY.unwrap().origin, pt(-5, 0, -5));
-            assert_eq!(SAVED_RAY.unwrap().direction, v(0, 0, 1));
+            assert_fuzzy_eq!(SAVED_RAY.unwrap().origin, pt(-5, 0, -5));
+            assert_fuzzy_eq!(SAVED_RAY.unwrap().direction, v(0, 0, 1));
         }
     }
 
@@ -179,6 +183,6 @@ mod tests {
         s.props_mut().transform = m;
         let n = s.normal_at(pt(0, F::sqrt(2.0) / 2.0, -F::sqrt(2.0) / 2.0));
 
-        assert_eq!(n, v(0, 0.97014, -0.24254));
+        assert_fuzzy_eq!(n, v(0, 0.97014, -0.24254));
     }
 }

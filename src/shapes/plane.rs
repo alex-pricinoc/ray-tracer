@@ -1,17 +1,19 @@
 use crate::{v, Intersection, Material, Matrix, Props, Ray, Shape, Tuple, EPSILON};
 use std::any::Any;
 
+pub fn glass() -> Plane {
+    let mut s = Plane::default();
+    s.props.material.transparency = 1.0;
+    s.props.material.refractive_index = 1.5;
+    s
+}
+
 #[derive(Debug, Default)]
 pub struct Plane {
     props: Props,
 }
 
 impl Plane {
-    #[must_use]
-    pub fn new() -> Self {
-        Self::default()
-    }
-
     #[must_use]
     pub fn transform(mut self, transform: Matrix<4>) -> Self {
         self.props.transform = transform;
@@ -28,6 +30,10 @@ impl Plane {
 }
 
 impl Shape for Plane {
+    fn as_shape(&self) -> &dyn Shape {
+        self
+    }
+
     fn as_any(&self) -> &dyn Any {
         self
     }
@@ -78,7 +84,7 @@ mod tests {
 
     #[test]
     fn the_normal_of_a_plane_is_constant_everywhere() {
-        let p = Plane::new();
+        let p = Plane::default();
 
         let n1 = p.local_normal_at(pt(0, 0, 0));
         let n2 = p.local_normal_at(pt(10, 0, -10));
@@ -91,7 +97,7 @@ mod tests {
 
     #[test]
     fn intersect_with_a_ray_parallel_to_the_plane() {
-        let p = Plane::new();
+        let p = Plane::default();
         let r = ray(pt(0, 10, 0), v(0, 0, 1));
         let xs = p.local_intersect(r);
 
@@ -100,7 +106,7 @@ mod tests {
 
     #[test]
     fn intersect_with_a_coplanar_ray() {
-        let p = Plane::new();
+        let p = Plane::default();
         let r = ray(pt(0, 0, 0), v(0, 0, 1));
         let xs = p.local_intersect(r);
 
@@ -109,7 +115,7 @@ mod tests {
 
     #[test]
     fn a_ray_intersecting_a_plane_from_above() {
-        let p = Plane::new();
+        let p = Plane::default();
         let r = ray(pt(0, 1, 0), v(0, -1, 0));
         let xs = p.local_intersect(r);
 
@@ -120,7 +126,7 @@ mod tests {
 
     #[test]
     fn a_ray_intersecting_a_plane_from_below() {
-        let p = Plane::new();
+        let p = Plane::default();
         let r = ray(pt(0, -1, 0), v(0, 1, 0));
         let xs = p.local_intersect(r);
 

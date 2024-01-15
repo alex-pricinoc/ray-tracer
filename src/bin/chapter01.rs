@@ -1,4 +1,3 @@
-use log::*;
 use ray_tracer::{pt, v, Tuple};
 
 #[derive(Debug)]
@@ -40,7 +39,7 @@ fn main() {
     let mut iteration = 0;
 
     while projectile.position.y > 0.0 {
-        trace!("{iteration}: {projectile:?}");
+        log::trace!("{iteration}: {projectile:?}");
 
         projectile.tick(&environment);
         iteration += 1;

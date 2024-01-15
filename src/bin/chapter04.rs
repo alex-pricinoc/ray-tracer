@@ -1,4 +1,3 @@
-use log::*;
 use ray_tracer::{color, pt, Canvas, Matrix, F, PI};
 use std::fs::File;
 
@@ -15,7 +14,7 @@ fn main() {
         let r = Matrix::rotation_y(i as F * PI / 6.0);
         let pixel = r * twelve;
 
-        debug!("x = {:>5.2}, z = {:>5.2}", pixel.x, pixel.z);
+        log::trace!("x = {:>5.2}, z = {:>5.2}", pixel.x, pixel.z);
 
         let x = (pixel.x * radius + center.x) as usize;
         let y = (pixel.z * radius + center.z) as usize;

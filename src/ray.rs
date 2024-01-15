@@ -110,6 +110,6 @@ mod tests {
         let light = PointLight::new(position, intensity);
 
         assert_eq!(light.position, position);
-        assert_eq!(light.intensity, intensity);
+        assert_fuzzy_eq!(light.intensity, intensity);
     }
 }

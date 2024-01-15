@@ -1,4 +1,4 @@
-use ray_tracer::{color, pt, Canvas, Intersections, Matrix, Ray, Shape, Sphere, PI};
+use ray_tracer::{color, pt, Canvas, Intersections, Matrix, Ray, Shape, Sphere, F, PI};
 use std::fs::File;
 
 fn main() {
@@ -10,20 +10,20 @@ fn main() {
 
     let wall_size = 7.0;
     let half = wall_size / 2.0;
-    let pixel_size = wall_size / canvas_pixels as f64;
+    let pixel_size = wall_size / canvas_pixels as F;
 
     let mut canvas = Canvas::new(canvas_pixels, canvas_pixels);
-    let shape = Sphere::new()
+    let shape = Sphere::default()
         // shrink it, and rotate it!
         .transform(Matrix::scaling(0.5, 1, 1).rotate_z(PI / 4.0));
 
     for y in 0..canvas_pixels {
         // compute the world y coordinate (top = +half, bottom = -half)
-        let world_y = half - pixel_size * y as f64;
+        let world_y = half - pixel_size * y as F;
 
         for x in 0..canvas_pixels {
             // compute the world x coordinate (left = -half, right = half)
-            let world_x = -half + pixel_size * x as f64;
+            let world_x = -half + pixel_size * x as F;
 
             // describe the point on the wall that the ray will target
             let position = pt(world_x, world_y, wall_z);

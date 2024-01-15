@@ -2,7 +2,7 @@ use crate::{FuzzyEq, Tuple, F};
 use std::fmt;
 use std::ops::{Index, IndexMut, Mul};
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, PartialEq)]
 pub struct Matrix<const D: usize>(pub [[F; D]; D]);
 
 #[macro_export]
@@ -357,11 +357,11 @@ impl<const D: usize> Mul<Tuple> for Matrix<D> {
     }
 }
 
-impl<const D: usize> PartialEq for Matrix<D> {
-    fn eq(&self, other: &Self) -> bool {
+impl<const D: usize> FuzzyEq<Self> for Matrix<D> {
+    fn fuzzy_eq(&self, other: &Self) -> bool {
         for row in 0..D {
             for column in 0..D {
-                if !self[row][column].fuzzy_eq(other[row][column]) {
+                if !self[row][column].fuzzy_eq(&other[row][column]) {
                     return false;
                 }
             }
@@ -504,10 +504,10 @@ mod tests {
         ];
 
         let expected = matrix![
-           20, 22 , 50 , 48;
-           44, 54 , 114 , 108;
-           40, 58 , 110 , 102;
-           16, 26 , 46 , 42;
+           20, 22, 50,  48;
+           44, 54, 114, 108;
+           40, 58, 110, 102;
+           16, 26, 46,  42;
         ];
 
         assert_eq!(a * b, expected);
@@ -516,10 +516,10 @@ mod tests {
     #[test]
     fn multiplying_matrix_by_tuple() {
         let a = matrix![
-          1,2,3,4;
-          2,4,4,2;
-          8,6,4,1;
-          0,0,0,1;
+          1, 2, 3, 4;
+          2, 4, 4, 2;
+          8, 6, 4, 1;
+          0, 0, 0, 1;
         ];
 
         let b = Tuple::from((1, 2, 3, 1));
@@ -551,17 +551,17 @@ mod tests {
     #[test]
     fn transposing_a_matrix() {
         let a = matrix![
-            0,9,3,0;
-            9,8,0,8;
-            1,8,5,3;
-            0,0,5,8;
+            0, 9, 3, 0;
+            9, 8, 0, 8;
+            1, 8, 5, 3;
+            0, 0, 5, 8;
         ];
 
         let transposed = matrix![
-            0,9,1,0;
-            9,8,8,0;
-            3,0,5,5;
-            0,8,3,8;
+            0, 9, 1, 0;
+            9, 8, 8, 0;
+            3, 0, 5, 5;
+            0, 8, 3, 8;
         ];
 
         assert_eq!(a.transpose(), transposed);
@@ -717,7 +717,7 @@ mod tests {
         assert_eq!(a.cofactor(3, 2), 105.0);
         assert_eq!(b[2][3], 105.0 / 532.0);
 
-        assert_eq!(
+        assert_fuzzy_eq!(
             b,
             matrix![
                0.21805,  0.45113,  0.24060, -0.04511;
@@ -744,7 +744,7 @@ mod tests {
            -0.69231, -0.69231, -0.76923, -1.92308;
         ];
 
-        assert_eq!(a.inverse(), inverse);
+        assert_fuzzy_eq!(a.inverse(), inverse);
     }
 
     #[test]
@@ -763,7 +763,7 @@ mod tests {
             0.17778,  0.06667, -0.26667,  0.33333;
         ];
 
-        assert_eq!(a.inverse(), inverse);
+        assert_fuzzy_eq!(a.inverse(), inverse);
     }
 
     #[test]
@@ -784,7 +784,7 @@ mod tests {
 
         let c = a * b;
 
-        assert_eq!(c * b.inverse(), a);
+        assert_fuzzy_eq!(c * b.inverse(), a);
     }
 
     #[test]
@@ -801,11 +801,11 @@ mod tests {
             -4,  4,  4,  1;
             -6,  5, -1,  1;
         ];
-        assert_eq!(a * a.inverse(), identity);
+        assert_fuzzy_eq!(a * a.inverse(), identity);
         //A: You get the identity matrix
 
         //Q: Is there any difference between the inverse of the transpose of a matrix, and the transpose of the inverse?
-        assert_eq!(a.transpose().inverse(), a.inverse().transpose());
+        assert_fuzzy_eq!(a.transpose().inverse(), a.inverse().transpose());
         //A: No
 
         //Q: Given multiplying the identity matrix by a tuple gives the tuple unchanged, what happens when you change
@@ -815,7 +815,7 @@ mod tests {
         let mut m = identity;
         m[0][0] = 5.0;
         //A: The tuple changes
-        assert_eq!(m * t, Tuple::from((5, 2, 3, 1)));
+        assert_fuzzy_eq!(m * t, Tuple::from((5, 2, 3, 1)));
     }
 
     #[test]
@@ -823,7 +823,7 @@ mod tests {
         let transform = Matrix::translation(5, -3, 2);
         let p = pt(-3, 4, 5);
 
-        assert_eq!(transform * p, pt(2, 1, 7));
+        assert_fuzzy_eq!(transform * p, pt(2, 1, 7));
     }
 
     #[test]
@@ -832,7 +832,7 @@ mod tests {
         let inv = transform.inverse();
         let p = pt(-3, 4, 5);
 
-        assert_eq!(inv * p, pt(-8, 7, 3));
+        assert_fuzzy_eq!(inv * p, pt(-8, 7, 3));
     }
 
     #[test]
@@ -840,7 +840,7 @@ mod tests {
         let transform = Matrix::translation(5, -3, 2);
         let v1 = v(-3, 4, 5);
 
-        assert_eq!(transform * v1, v1);
+        assert_fuzzy_eq!(transform * v1, v1);
     }
 
     #[test]
@@ -848,7 +848,7 @@ mod tests {
         let transform = Matrix::scaling(2, 3, 4);
         let p = pt(-4, 6, 8);
 
-        assert_eq!(transform * p, pt(-8, 18, 32));
+        assert_fuzzy_eq!(transform * p, pt(-8, 18, 32));
     }
 
     #[test]
@@ -856,7 +856,7 @@ mod tests {
         let transform = Matrix::scaling(2, 3, 4);
         let v1 = v(-4, 6, 8);
 
-        assert_eq!(transform * v1, v(-8, 18, 32));
+        assert_fuzzy_eq!(transform * v1, v(-8, 18, 32));
     }
 
     #[test]
@@ -866,7 +866,7 @@ mod tests {
 
         let v1 = v(-4, 6, 8);
 
-        assert_eq!(inv * v1, v(-2, 2, 2));
+        assert_fuzzy_eq!(inv * v1, v(-2, 2, 2));
     }
 
     #[test]
@@ -874,7 +874,7 @@ mod tests {
         let transform = Matrix::scaling(-1, 1, 1);
         let p = pt(2, 3, 4);
 
-        assert_eq!(transform * p, pt(-2, 3, 4));
+        assert_fuzzy_eq!(transform * p, pt(-2, 3, 4));
     }
 
     #[test]
@@ -883,12 +883,12 @@ mod tests {
         let half_quarter = Matrix::rotation_x(PI / 4.0);
         let full_quarter = Matrix::rotation_x(PI / 2.0);
 
-        assert_eq!(
+        assert_fuzzy_eq!(
             half_quarter * p,
             pt(0, F::sqrt(2.0) / 2.0, F::sqrt(2.0) / 2.0)
         );
 
-        assert_eq!(full_quarter * p, pt(0, 0, 1));
+        assert_fuzzy_eq!(full_quarter * p, pt(0, 0, 1));
     }
 
     #[test]
@@ -898,7 +898,7 @@ mod tests {
 
         let inv = half_quarter.inverse();
 
-        assert_eq!(inv * p, pt(0, F::sqrt(2.0) / 2.0, -(F::sqrt(2.0)) / 2.0));
+        assert_fuzzy_eq!(inv * p, pt(0, F::sqrt(2.0) / 2.0, -(F::sqrt(2.0)) / 2.0));
     }
 
     #[test]
@@ -907,12 +907,12 @@ mod tests {
         let half_quarter = Matrix::rotation_y(PI / 4.0);
         let full_quarter = Matrix::rotation_y(PI / 2.0);
 
-        assert_eq!(
+        assert_fuzzy_eq!(
             half_quarter * p,
             pt(F::sqrt(2.0) / 2.0, 0, F::sqrt(2.0) / 2.0)
         );
 
-        assert_eq!(full_quarter * p, pt(1, 0, 0));
+        assert_fuzzy_eq!(full_quarter * p, pt(1, 0, 0));
     }
 
     #[test]
@@ -921,54 +921,54 @@ mod tests {
         let half_quarter = Matrix::rotation_z(PI / 4.0);
         let full_quarter = Matrix::rotation_z(PI / 2.0);
 
-        assert_eq!(
+        assert_fuzzy_eq!(
             half_quarter * p,
             pt(-F::sqrt(2.0) / 2.0, F::sqrt(2.0) / 2.0, 0)
         );
 
-        assert_eq!(full_quarter * p, pt(-1, 0, 0));
+        assert_fuzzy_eq!(full_quarter * p, pt(-1, 0, 0));
     }
 
     #[test]
     fn shearing_transformation_moves_x_in_proportion_to_y() {
         let transform = Matrix::shearing(1, 0, 0, 0, 0, 0);
         let p = pt(2, 3, 4);
-        assert_eq!(transform * p, pt(5, 3, 4));
+        assert_fuzzy_eq!(transform * p, pt(5, 3, 4));
     }
 
     #[test]
     fn a_shearing_transformation_moves_x_in_proportion_to_z() {
         let transform = Matrix::shearing(0, 1, 0, 0, 0, 0);
         let p = pt(2, 3, 4);
-        assert_eq!(transform * p, pt(6, 3, 4));
+        assert_fuzzy_eq!(transform * p, pt(6, 3, 4));
     }
 
     #[test]
     fn a_shearing_transformation_moves_y_in_proportion_to_x() {
         let transform = Matrix::shearing(0, 0, 1, 0, 0, 0);
         let p = pt(2, 3, 4);
-        assert_eq!(transform * p, pt(2, 5, 4));
+        assert_fuzzy_eq!(transform * p, pt(2, 5, 4));
     }
 
     #[test]
     fn a_shearing_transformation_moves_y_in_proportion_to_z() {
         let transform = Matrix::shearing(0, 0, 0, 1, 0, 0);
         let p = pt(2, 3, 4);
-        assert_eq!(transform * p, pt(2, 7, 4));
+        assert_fuzzy_eq!(transform * p, pt(2, 7, 4));
     }
 
     #[test]
     fn a_shearing_transformation_moves_z_in_proportion_to_x() {
         let transform = Matrix::shearing(0, 0, 0, 0, 1, 0);
         let p = pt(2, 3, 4);
-        assert_eq!(transform * p, pt(2, 3, 6));
+        assert_fuzzy_eq!(transform * p, pt(2, 3, 6));
     }
 
     #[test]
     fn a_shearing_transformation_moves_z_in_proportion_to_y() {
         let transform = Matrix::shearing(0, 0, 0, 0, 0, 1);
         let p = pt(2, 3, 4);
-        assert_eq!(transform * p, pt(2, 3, 7));
+        assert_fuzzy_eq!(transform * p, pt(2, 3, 7));
     }
 
     #[test]
@@ -980,15 +980,15 @@ mod tests {
 
         // rotation
         let p2 = a * p;
-        assert_eq!(p2, pt(1, -1, 0));
+        assert_fuzzy_eq!(p2, pt(1, -1, 0));
 
         // scaling
         let p3 = b * p2;
-        assert_eq!(p3, pt(5, -5, 0));
+        assert_fuzzy_eq!(p3, pt(5, -5, 0));
 
         // translation
         let p4 = c * p3;
-        assert_eq!(p4, pt(15, 0, 7));
+        assert_fuzzy_eq!(p4, pt(15, 0, 7));
     }
 
     #[test]
@@ -1007,6 +1007,6 @@ mod tests {
             .scale(5, 5, 5)
             .translate(10, 5, 7);
 
-        assert_eq!(t * p, pt(15, 0, 7));
+        assert_fuzzy_eq!(t * p, pt(15, 0, 7));
     }
 }

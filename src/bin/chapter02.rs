@@ -1,4 +1,3 @@
-use log::*;
 use ray_tracer::{color, pt, v, Canvas, Tuple};
 use std::fs::File;
 
@@ -44,7 +43,7 @@ fn main() {
 
         tick(&mut projectile, &environment);
 
-        trace!("projectile is at x: {x:>4} y: {y:>4}");
+        log::trace!("projectile is at x: {x:>4} y: {y:>4}");
     }
 
     let mut file = File::create("pictures/chapter-02.ppm").unwrap();

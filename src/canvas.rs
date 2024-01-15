@@ -1,14 +1,26 @@
 use crate::{FuzzyEq, F};
-use std::io::{self, Write};
+use std::io::{Result as IoResult, Write};
 use std::iter::Sum;
 use std::ops::{Add, Mul, Sub};
 
-pub fn color(r: impl Into<F>, g: impl Into<F>, b: impl Into<F>) -> Color {
+pub fn color<R: Into<F>, G: Into<F>, B: Into<F>>(r: R, g: G, b: B) -> Color {
     Color::new(r.into(), g.into(), b.into())
 }
 
+pub const WHITE: Color = Color {
+    red: 1.0,
+    green: 1.0,
+    blue: 1.0,
+};
+
+pub const BLACK: Color = Color {
+    red: 0.0,
+    green: 0.0,
+    blue: 0.0,
+};
+
 #[must_use]
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Color {
     pub red: F,
     pub green: F,
@@ -18,14 +30,6 @@ pub struct Color {
 impl Color {
     pub fn new(red: F, green: F, blue: F) -> Self {
         Self { red, green, blue }
-    }
-
-    pub fn white() -> Self {
-        color(1, 1, 1)
-    }
-
-    pub fn black() -> Self {
-        color(0, 0, 0)
     }
 
     pub fn clip(self, lo: F, hi: F) -> Self {
@@ -39,6 +43,7 @@ impl Color {
     #[must_use]
     pub fn to_u8(self) -> (u8, u8, u8) {
         let c = self.clip(0.0, 1.0);
+
         (
             (c.red * 255.0).round() as _,
             (c.green * 255.0).round() as _,
@@ -93,14 +98,15 @@ impl Mul<Color> for Color {
 
 impl Sum for Color {
     fn sum<I: Iterator<Item = Self>>(iter: I) -> Self {
-        iter.fold(Color::black(), |acc, c| acc + c)
+        iter.fold(BLACK, |acc, c| acc + c)
     }
 }
-impl PartialEq for Color {
-    fn eq(&self, other: &Self) -> bool {
-        self.red.fuzzy_eq(other.red)
-            && self.green.fuzzy_eq(other.green)
-            && self.blue.fuzzy_eq(other.blue)
+
+impl FuzzyEq<Self> for Color {
+    fn fuzzy_eq(&self, other: &Self) -> bool {
+        self.red.fuzzy_eq(&other.red)
+            && self.green.fuzzy_eq(&other.green)
+            && self.blue.fuzzy_eq(&other.blue)
     }
 }
 
@@ -114,7 +120,7 @@ pub struct Canvas {
 
 impl Canvas {
     pub fn new(width: usize, height: usize) -> Self {
-        Self::new_with_color(width, height, Color::black())
+        Self::new_with_color(width, height, BLACK)
     }
 
     pub fn new_with_color(width: usize, height: usize, color: Color) -> Self {
@@ -142,18 +148,18 @@ impl Canvas {
         self.pixels.chunks_exact_mut(self.width)
     }
 
-    fn write_ppm_header(&self, writer: &mut impl Write) -> io::Result<()> {
+    fn write_ppm_header(&self, writer: &mut impl Write) -> IoResult<()> {
         write!(writer, "P3\n{} {}\n255\n", self.width, self.height)
     }
 
-    fn write_ppm_data(&self, writer: &mut impl Write) -> io::Result<()> {
+    fn write_ppm_data(&self, writer: &mut impl Write) -> IoResult<()> {
         for row in self.rows() {
-            for (i, pixel) in row.iter().enumerate() {
+            for (i, color) in row.iter().enumerate() {
                 if i > 0 {
                     write!(writer, " ")?;
                 }
 
-                let (r, g, b) = pixel.to_u8();
+                let (r, g, b) = color.to_u8();
 
                 write!(writer, "{r} {g} {b}")?;
             }
@@ -163,7 +169,7 @@ impl Canvas {
         Ok(())
     }
 
-    pub fn write_ppm(&self, writer: &mut impl Write) -> io::Result<()> {
+    pub fn write_ppm(&self, writer: &mut impl Write) -> IoResult<()> {
         let mut guard = MaxWidthWriter::new(70, writer);
 
         self.write_ppm_header(&mut guard)?;
@@ -186,7 +192,7 @@ impl<'a, T: Write> MaxWidthWriter<'a, T> {
         }
     }
 
-    fn flush_line(&mut self) -> io::Result<()> {
+    fn flush_line(&mut self) -> IoResult<()> {
         if let Some(i) = self.line_buffer.iter().rposition(|&b| b == b' ') {
             self.line_buffer[i] = b'\n';
 
@@ -196,7 +202,7 @@ impl<'a, T: Write> MaxWidthWriter<'a, T> {
         Ok(())
     }
 
-    fn flush_partial(&mut self, i: usize) -> io::Result<()> {
+    fn flush_partial(&mut self, i: usize) -> IoResult<()> {
         self.writer.write_all(&self.line_buffer[..=i])?;
         self.line_buffer.drain(..=i);
 
@@ -205,7 +211,7 @@ impl<'a, T: Write> MaxWidthWriter<'a, T> {
 }
 
 impl<T: Write> Write for MaxWidthWriter<'_, T> {
-    fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
+    fn write(&mut self, buf: &[u8]) -> IoResult<usize> {
         self.line_buffer.extend_from_slice(buf);
 
         while let Some(i) = self.line_buffer.iter().position(|&b| b == b'\n') {
@@ -219,7 +225,7 @@ impl<T: Write> Write for MaxWidthWriter<'_, T> {
         Ok(buf.len())
     }
 
-    fn flush(&mut self) -> io::Result<()> {
+    fn flush(&mut self) -> IoResult<()> {
         self.writer.write_all(&self.line_buffer)?;
         self.line_buffer.clear();
         self.writer.flush()
@@ -252,7 +258,7 @@ mod tests {
 
         let expected = color(0.9, 0.2, 0.04);
 
-        assert_eq!(c1 * c2, expected);
+        assert_fuzzy_eq!(c1 * c2, expected);
     }
 
     #[test]
@@ -264,7 +270,7 @@ mod tests {
 
         for x in 0..c.width {
             for y in 0..c.height {
-                assert_eq!(c.pixel_at(x, y), Color::black());
+                assert_fuzzy_eq!(c.pixel_at(x, y), BLACK);
             }
         }
     }
@@ -278,7 +284,7 @@ mod tests {
 
         let expected = color(1.0, 0.0, 0.0);
 
-        assert_eq!(expected, c.pixel_at(2, 3));
+        assert_fuzzy_eq!(expected, c.pixel_at(2, 3));
     }
 
     #[test]

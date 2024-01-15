@@ -1,30 +1,39 @@
-use ray_tracer::{
-    point_light, pt, v, view_transform, Camera, Material, Matrix, Plane, Sphere, World, PI, WHITE,
-};
+use ray_tracer::*;
 use std::fs::File;
 
 fn main() {
     let canvas_width = 2256;
     let canvas_height = 1504;
 
-    let floor = Plane::default().material(Material::default().rgb(0.5, 0.45, 0.45).specular(0.0));
+    let floor = glass_plane().material(
+        Material::default()
+            .rgb(1, 0, 0)
+            .diffuse(0.7)
+            .ambient(0.1)
+            .specular(1)
+            .shininess(300)
+            .reflective(0.9)
+            .transparency(0.9),
+    );
 
-    let middle = Sphere::default()
+    let middle = glass_sphere()
         .transform(Matrix::translation(-0.5, 1, 0.5))
         .material(
             Material::default()
                 .rgb(0.1, 1, 0.5)
                 .diffuse(0.7)
-                .specular(0.3),
+                .specular(0.3)
+                .reflective(1),
         );
 
-    let right = Sphere::default()
+    let right = glass_sphere()
         .transform(Matrix::scaling(0.5, 0.5, 0.5).translate(1.5, 0.5, -0.5))
         .material(
             Material::default()
                 .rgb(0.5, 1, 0.1)
                 .diffuse(0.7)
-                .specular(0.3),
+                .specular(0.3)
+                .reflective(1),
         );
 
     let left = Sphere::default()
@@ -49,6 +58,6 @@ fn main() {
 
     let canvas = camera.render(&world);
 
-    let mut file = File::create("pictures/chapter-09.ppm").unwrap();
+    let mut file = File::create("pictures/chapter-11.ppm").unwrap();
     canvas.write_ppm(&mut file).unwrap();
 }

@@ -1,4 +1,6 @@
-use crate::{pt, Canvas, Matrix, Ray, World, F};
+use crate::{pt, Canvas, Matrix, Ray, World, F, REFLECTION_DEPTH};
+use itertools::iproduct;
+use rayon::prelude::*;
 
 pub struct Camera {
     hsize: usize,
@@ -71,17 +73,23 @@ impl Camera {
     }
 
     pub fn render(&self, world: &World) -> Canvas {
-        let mut image = Canvas::new(self.hsize, self.vsize);
+        let mut canvas = Canvas::new(self.hsize, self.vsize);
 
-        for y in 0..self.vsize {
-            for x in 0..self.hsize {
+        let pixels = iproduct!(0..canvas.width, 0..canvas.height)
+            .par_bridge()
+            .map(|(x, y)| {
                 let ray = self.ray_for_pixel(x, y);
-                let color = world.color_at(ray);
-                image.write_pixel(x, y, color);
-            }
+                let color = world.color_at(ray, REFLECTION_DEPTH);
+
+                (x, y, color)
+            })
+            .collect::<Vec<_>>();
+
+        for (x, y, color) in pixels {
+            canvas.write_pixel(x, y, color);
         }
 
-        image
+        canvas
     }
 }
 
@@ -123,8 +131,8 @@ mod tests {
         let c = Camera::new(201, 101, PI / 2.0);
         let r = c.ray_for_pixel(100, 50);
 
-        assert_eq!(r.origin, pt(0, 0, 0));
-        assert_eq!(r.direction, v(0, 0, -1));
+        assert_fuzzy_eq!(r.origin, pt(0, 0, 0));
+        assert_fuzzy_eq!(r.direction, v(0, 0, -1));
     }
 
     #[test]
@@ -132,8 +140,8 @@ mod tests {
         let c = Camera::new(201, 101, PI / 2.0);
         let r = c.ray_for_pixel(0, 0);
 
-        assert_eq!(r.origin, pt(0, 0, 0));
-        assert_eq!(r.direction, v(0.66519, 0.33259, -0.66851));
+        assert_fuzzy_eq!(r.origin, pt(0, 0, 0));
+        assert_fuzzy_eq!(r.direction, v(0.66519, 0.33259, -0.66851));
     }
 
     #[test]
@@ -143,8 +151,8 @@ mod tests {
 
         let r = c.ray_for_pixel(100, 50);
 
-        assert_eq!(r.origin, pt(0, 2, -5));
-        assert_eq!(r.direction, v(F::sqrt(2.0) / 2.0, 0, -F::sqrt(2.0) / 2.0));
+        assert_fuzzy_eq!(r.origin, pt(0, 2, -5));
+        assert_fuzzy_eq!(r.direction, v(F::sqrt(2.0) / 2.0, 0, -F::sqrt(2.0) / 2.0));
     }
 
     #[test]
@@ -158,6 +166,6 @@ mod tests {
 
         let image = c.render(&w);
 
-        assert_eq!(image.pixel_at(5, 5), color(0.38066, 0.47583, 0.2855));
+        assert_fuzzy_eq!(image.pixel_at(5, 5), color(0.38066, 0.47583, 0.2855));
     }
 }
