@@ -82,12 +82,6 @@ impl Shape for Sphere {
     }
 }
 
-impl From<Sphere> for Box<dyn Shape> {
-    fn from(value: Sphere) -> Box<dyn Shape> {
-        Box::new(value)
-    }
-}
-
 #[cfg(test)]
 mod tests {
     #![allow(clippy::approx_constant)]

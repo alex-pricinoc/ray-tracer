@@ -1,5 +1,4 @@
 use crate::{Ray, Shape, Tuple, EPSILON, F};
-use std::cmp::{Ord, Ordering};
 
 pub struct Comps<'shape> {
     pub t: F,
@@ -115,33 +114,15 @@ impl<'shape> Intersection<'shape> {
     }
 }
 
-impl Eq for Intersection<'_> {}
-
-impl Ord for Intersection<'_> {
-    fn cmp(&self, other: &Self) -> Ordering {
-        self.t.partial_cmp(&other.t).expect("t is not NaN")
-    }
+pub trait Intersections {
+    fn hit(&self) -> Option<&Intersection<'_>>;
 }
 
-impl PartialOrd for Intersection<'_> {
-    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        Some(self.cmp(other))
-    }
-}
-
-pub trait Intersections<'a> {
-    fn hit(&'a self) -> Option<&Intersection<'a>>;
-}
-
-impl<'a, I> Intersections<'a> for I
-where
-    I: AsRef<[Intersection<'a>]>,
-{
-    fn hit(&'a self) -> Option<&Intersection<'a>> {
-        self.as_ref()
-            .iter()
+impl Intersections for Vec<Intersection<'_>> {
+    fn hit(&self) -> Option<&Intersection<'_>> {
+        self.iter()
             .filter(|&i| i.t >= 0.0)
-            .min_by(Ord::cmp)
+            .min_by(|&a, &b| a.t.total_cmp(&b.t))
     }
 }
 
@@ -183,7 +164,7 @@ mod tests {
         let s = Sphere::default();
         let i1 = s.intersection(1.0);
         let i2 = s.intersection(2.0);
-        let xs = &[i2, i1];
+        let xs = vec![i2, i1];
 
         let i = xs.hit();
 
@@ -195,7 +176,7 @@ mod tests {
         let s = Sphere::default();
         let i1 = s.intersection(-1.0);
         let i2 = s.intersection(1.0);
-        let xs = [i2, i1];
+        let xs = vec![i2, i1];
 
         let i = xs.hit();
 
@@ -207,7 +188,7 @@ mod tests {
         let s = Sphere::default();
         let i1 = s.intersection(-2.0);
         let i2 = s.intersection(-1.0);
-        let xs = [i2, i1];
+        let xs = vec![i2, i1];
         let i = xs.hit();
 
         assert_eq!(i, None);
@@ -220,7 +201,7 @@ mod tests {
         let i2 = s.intersection(7.0);
         let i3 = s.intersection(-3.0);
         let i4 = s.intersection(2.0);
-        let xs = [i1, i2, i3, i4];
+        let xs = vec![i1, i2, i3, i4];
 
         let i = xs.hit();
 

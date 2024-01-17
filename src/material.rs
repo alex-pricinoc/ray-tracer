@@ -137,6 +137,13 @@ impl Material {
 
         self
     }
+
+    #[must_use]
+    pub fn refractive_index(mut self, refractive_index: impl Into<F>) -> Self {
+        self.refractive_index = refractive_index.into();
+
+        self
+    }
 }
 
 impl Default for Material {

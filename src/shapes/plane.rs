@@ -1,6 +1,7 @@
 use crate::{v, Intersection, Material, Matrix, Props, Ray, Shape, Tuple, EPSILON};
 use std::any::Any;
 
+#[must_use]
 pub fn glass() -> Plane {
     let mut s = Plane::default();
     s.props.material.transparency = 1.0;
@@ -68,12 +69,6 @@ impl Shape for Plane {
 
     fn local_normal_at(&self, _point: Tuple) -> Tuple {
         v(0.0, 1.0, 0.0)
-    }
-}
-
-impl From<Plane> for Box<dyn Shape> {
-    fn from(value: Plane) -> Box<dyn Shape> {
-        Box::new(value)
     }
 }
 

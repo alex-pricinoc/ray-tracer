@@ -21,6 +21,7 @@ pub use material::Material;
 pub use matrix::Matrix;
 pub use pattern::{checkers, gradient, ring, stripe, Pattern};
 pub use ray::{point_light, ray, PointLight, Ray};
+pub use shapes::cube::Cube;
 pub use shapes::plane::{glass as glass_plane, Plane};
 pub use shapes::sphere::{glass as glass_sphere, Sphere};
 pub use shapes::{Props, Shape};

@@ -8,40 +8,34 @@ fn main() {
     let canvas_width = 2256;
     let canvas_height = 1504;
 
-    let floor = Plane::default().material(
-        Material::default()
-            .pattern(checkers(WHITE, BLACK))
-            .reflective(0.2),
-    );
+    let floor = Plane::default().material(Material::default().pattern(checkers(WHITE, BLACK)));
 
     let middle = Sphere::default()
         .transform(Matrix::translation(-0.5, 1.0, 0.5))
         .material(
             Material::default()
-                .diffuse(0.2)
-                .specular(0.2)
-                .transparency(1)
-                .refractive_index(1.04)
-                .reflective(0.9)
-                .shininess(600),
+                .rgb(0.1, 1, 0.5)
+                .diffuse(0.7)
+                .specular(0.3),
         );
 
     let right = Sphere::default()
-        .transform(Matrix::scaling(0.5, 0.5, 0.5).translate(1.5, 0.5, -0.5))
+        .transform(Matrix::translation(1.5, 0.5, -0.5) * Matrix::scaling(0.5, 0.5, 0.5))
         .material(
             Material::default()
-                .pattern(gradient(color(0.5, 0.75, 0.1), color(0.1, 0.25, 1.0)))
-                .diffuse(0.2)
-                .specular(0.2)
-                .reflective(1)
-                .shininess(400),
+                .pattern(
+                    gradient(color(0.5, 0.75, 0.1), color(0.1, 0.25, 1.0))
+                        .transform(Matrix::translation(1, 0, 0) * Matrix::scaling(2, 2, 2)),
+                )
+                .diffuse(0.7)
+                .specular(0.3),
         );
 
     let left = Sphere::default()
-        .transform(Matrix::scaling(0.33, 0.33, 0.33).translate(-1.8, 0.33, 2.5))
+        .transform(Matrix::translation(-1.5, 0.33, -0.75) * Matrix::scaling(0.33, 0.33, 0.33))
         .material(
             Material::default()
-                .rgb(1, 0.8, 0.1)
+                .rgb(1.0, 0.8, 0.1)
                 .diffuse(0.7)
                 .specular(0.3),
         );
@@ -59,6 +53,6 @@ fn main() {
 
     let canvas = camera.render(&world);
 
-    let mut file = File::create("pictures/chapter-11.ppm").unwrap();
+    let mut file = File::create("pictures/chapter-10.ppm").unwrap();
     canvas.write_ppm(&mut file).unwrap();
 }

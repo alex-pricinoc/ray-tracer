@@ -1,3 +1,4 @@
+pub mod cube;
 pub mod plane;
 pub mod sphere;
 
@@ -35,6 +36,12 @@ pub trait Shape: Debug + Sync + Send {
     }
     fn intersection(&self, t: F) -> Intersection<'_> {
         Intersection::new(t, self.as_shape())
+    }
+}
+
+impl<T: Shape + 'static> From<T> for Box<dyn Shape> {
+    fn from(t: T) -> Self {
+        Box::new(t)
     }
 }
 

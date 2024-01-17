@@ -59,6 +59,13 @@ impl Pattern {
 
         self.color_at(pattern_point)
     }
+
+    #[must_use]
+    pub fn transform(mut self, transform: Matrix<4>) -> Self {
+        self.transform = transform;
+
+        self
+    }
 }
 
 #[must_use]

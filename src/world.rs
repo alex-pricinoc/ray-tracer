@@ -30,7 +30,7 @@ impl World {
                 comps.object.props().material.lighting(
                     comps.object,
                     l,
-                    comps.point,
+                    comps.over_point,
                     comps.eyev,
                     comps.normalv,
                     self.is_shadowed(l, comps.over_point),
@@ -183,7 +183,7 @@ mod tests {
 
         let mut xs = w.intersect(r);
         assert_eq!(xs.len(), 4);
-        xs.sort_unstable();
+        xs.sort_by(|a, b| a.t.total_cmp(&b.t));
         assert_eq!(xs[0].t, 4.0);
         assert_eq!(xs[1].t, 4.5);
         assert_eq!(xs[2].t, 5.5);
