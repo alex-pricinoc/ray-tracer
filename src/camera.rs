@@ -1,4 +1,4 @@
-use crate::{pt, Canvas, Matrix, Ray, World, F, REFLECTION_DEPTH};
+use crate::{pt, v, view_transform, Canvas, Matrix, Ray, World, F, PI, REFLECTION_DEPTH};
 use itertools::iproduct;
 use rayon::prelude::*;
 
@@ -11,6 +11,15 @@ pub struct Camera {
     half_height: F,
     pixel_size: F,
     transform: Matrix<4>,
+}
+impl Default for Camera {
+    fn default() -> Self {
+        Self::new(2256, 1504, PI / 3.0).transform(view_transform(
+            pt(0, 1.5, -5),
+            pt(0, 1, 0),
+            v(0, 1, 0),
+        ))
+    }
 }
 
 impl Camera {

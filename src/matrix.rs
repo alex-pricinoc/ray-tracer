@@ -3,7 +3,7 @@ use std::fmt;
 use std::ops::{Index, IndexMut, Mul};
 
 #[derive(Copy, Clone, PartialEq)]
-pub struct Matrix<const D: usize>(pub [[F; D]; D]);
+pub struct Matrix<const D: usize>([[F; D]; D]);
 
 #[macro_export]
 macro_rules! matrix {
@@ -13,13 +13,13 @@ macro_rules! matrix {
 
     ($a:expr, $b:expr;
      $c:expr, $d:expr$(;)?) => {
-        Matrix([[$a as F, $b as F], [$c as F, $d as F]])
+        Matrix::from([[$a as F, $b as F], [$c as F, $d as F]])
     };
 
     ($a:expr, $b:expr, $c:expr;
      $d:expr, $e:expr, $f:expr;
      $g:expr, $h:expr, $i:expr$(;)?) => {
-        Matrix([
+        Matrix::from([
             [$a as F, $b as F, $c as F],
             [$d as F, $e as F, $f as F],
             [$g as F, $h as F, $i as F],
@@ -30,7 +30,7 @@ macro_rules! matrix {
      $e:expr, $f:expr, $g:expr, $h:expr;
      $i:expr, $j:expr, $k:expr, $l:expr;
      $m:expr, $n:expr, $o:expr, $p:expr$(;)?) => {
-        Matrix([
+        Matrix::from([
             [$a as F, $b as F, $c as F, $d as F],
             [$e as F, $f as F, $g as F, $h as F],
             [$i as F, $j as F, $k as F, $l as F],
@@ -43,6 +43,11 @@ impl<const D: usize> Matrix<D> {
     #[must_use]
     pub fn new() -> Self {
         Self([[0.0; D]; D])
+    }
+
+    #[must_use]
+    pub fn from(value: [[F; D]; D]) -> Self {
+        Matrix(value)
     }
 
     #[must_use]

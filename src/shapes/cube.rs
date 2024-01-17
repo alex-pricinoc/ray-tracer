@@ -79,16 +79,16 @@ impl Shape for Cube {
         vec![i1, i2]
     }
 
-    fn local_normal_at(&self, point: Tuple) -> Tuple {
-        let maxc = point.x.abs().max(point.y.abs()).max(point.z.abs());
+    fn local_normal_at(&self, Tuple { x, y, z, .. }: Tuple) -> Tuple {
+        let maxc = x.abs().max(y.abs()).max(z.abs());
 
-        if maxc == point.x.abs() {
-            return v(point.x, 0, 0);
-        } else if maxc == point.y.abs() {
-            return v(0, point.y, 0);
+        if maxc == x.abs() {
+            return v(x, 0, 0);
+        } else if maxc == y.abs() {
+            return v(0, y, 0);
         }
 
-        v(0.0, 0.0, point.z)
+        v(0.0, 0.0, z)
     }
 }
 

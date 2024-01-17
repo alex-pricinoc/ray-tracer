@@ -1,13 +1,9 @@
 use ray_tracer::{
-    checkers, color, gradient, pt, v, view_transform, Camera, Material, Matrix, Plane, Sphere,
-    World, BLACK, PI, WHITE,
+    checkers, color, gradient, Camera, Material, Matrix, Plane, Sphere, World, BLACK, WHITE,
 };
 use std::fs::File;
 
 fn main() {
-    let canvas_width = 2256;
-    let canvas_height = 1504;
-
     let floor = Plane::default().material(Material::default().pattern(checkers(WHITE, BLACK)));
 
     let middle = Sphere::default()
@@ -45,13 +41,7 @@ fn main() {
         ..Default::default()
     };
 
-    let camera = Camera::new(canvas_width, canvas_height, PI / 3.0).transform(view_transform(
-        pt(0, 1.5, -5),
-        pt(0, 1, 0),
-        v(0, 1, 0),
-    ));
-
-    let canvas = camera.render(&world);
+    let canvas = Camera::default().render(&world);
 
     let mut file = File::create("pictures/chapter-10.ppm").unwrap();
     canvas.write_ppm(&mut file).unwrap();

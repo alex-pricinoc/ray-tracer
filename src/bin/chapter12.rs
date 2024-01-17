@@ -1,13 +1,7 @@
-use ray_tracer::{
-    checkers, pt, v, view_transform, Camera, Cube, Material, Matrix, Sphere, World, BLACK, PI,
-    WHITE,
-};
+use ray_tracer::{checkers, Camera, Cube, Material, Matrix, Sphere, World, BLACK, PI, WHITE};
 use std::fs::File;
 
 fn main() {
-    let canvas_width = 2256;
-    let canvas_height = 1504;
-
     let room = Cube::default()
         .transform(
             Matrix::rotation_y(PI / 3.5)
@@ -87,13 +81,7 @@ fn main() {
         ..Default::default()
     };
 
-    let camera = Camera::new(canvas_width, canvas_height, PI / 3.0).transform(view_transform(
-        pt(0, 1.5, -5),
-        pt(0, 1, 0),
-        v(0, 1, 0),
-    ));
-
-    let canvas = camera.render(&world);
+    let canvas = Camera::default().render(&world);
 
     let mut file = File::create("pictures/chapter-12.ppm").unwrap();
     canvas.write_ppm(&mut file).unwrap();

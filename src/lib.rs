@@ -21,10 +21,14 @@ pub use material::Material;
 pub use matrix::Matrix;
 pub use pattern::{checkers, gradient, ring, stripe, Pattern};
 pub use ray::{point_light, ray, PointLight, Ray};
-pub use shapes::cube::Cube;
-pub use shapes::plane::{glass as glass_plane, Plane};
-pub use shapes::sphere::{glass as glass_sphere, Sphere};
-pub use shapes::{Props, Shape};
+pub use shapes::{
+    cone::Cone,
+    cube::Cube,
+    cylinder::Cylinder,
+    plane::{glass as glass_plane, Plane},
+    sphere::{glass as glass_sphere, Sphere},
+    {Props, Shape},
+};
 pub use transformation::view_transform;
 pub use tuple::{point as pt, vector as v, Tuple};
 pub use utils::FuzzyEq;
@@ -32,6 +36,7 @@ pub use world::World;
 
 pub type F = f64;
 pub const PI: F = std::f64::consts::PI;
+pub const INFINITY: F = std::f64::INFINITY;
 
 const EPSILON: F = 1e-5;
 const REFLECTION_DEPTH: u8 = 5;
