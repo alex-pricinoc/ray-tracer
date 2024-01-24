@@ -1,7 +1,4 @@
-use crate::{
-    v, FuzzyEq, Intersection, Material, Matrix, Props, Ray, Shape, Tuple, EPSILON, F, INFINITY,
-};
-use std::any::Any;
+use crate::{v, FuzzyEq, Intersection, Props, Ray, Shape, Tuple, EPSILON, F, INFINITY};
 
 #[derive(Debug)]
 pub struct Cone {
@@ -12,20 +9,6 @@ pub struct Cone {
 }
 
 impl Cone {
-    #[must_use]
-    pub fn transform(mut self, transform: Matrix<4>) -> Self {
-        self.props.transform = transform;
-
-        self
-    }
-
-    #[must_use]
-    pub fn material(mut self, material: Material) -> Self {
-        self.props.material = material;
-
-        self
-    }
-
     #[must_use]
     pub fn minimum(mut self, minimum: impl Into<F>) -> Self {
         self.minimum = minimum.into();
@@ -89,22 +72,6 @@ fn intersect_caps(cone: &Cone, ray: Ray) -> Vec<F> {
 }
 
 impl Shape for Cone {
-    fn as_shape(&self) -> &dyn Shape {
-        self
-    }
-
-    fn as_any(&self) -> &dyn Any {
-        self
-    }
-
-    fn as_any_mut(&mut self) -> &mut dyn Any {
-        self
-    }
-
-    fn shape_eq(&self, other: &dyn Any) -> bool {
-        other.downcast_ref::<Self>().is_some()
-    }
-
     fn props(&self) -> &Props {
         &self.props
     }

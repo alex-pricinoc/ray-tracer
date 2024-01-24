@@ -1,5 +1,4 @@
-use crate::{v, Intersection, Material, Matrix, Props, Ray, Shape, Tuple, EPSILON};
-use std::any::Any;
+use crate::{v, Intersection, Props, Ray, Shape, Tuple, EPSILON};
 
 #[must_use]
 pub fn glass() -> Plane {
@@ -14,39 +13,7 @@ pub struct Plane {
     props: Props,
 }
 
-impl Plane {
-    #[must_use]
-    pub fn transform(mut self, transform: Matrix<4>) -> Self {
-        self.props.transform = transform;
-
-        self
-    }
-
-    #[must_use]
-    pub fn material(mut self, material: Material) -> Self {
-        self.props.material = material;
-
-        self
-    }
-}
-
 impl Shape for Plane {
-    fn as_shape(&self) -> &dyn Shape {
-        self
-    }
-
-    fn as_any(&self) -> &dyn Any {
-        self
-    }
-
-    fn as_any_mut(&mut self) -> &mut dyn Any {
-        self
-    }
-
-    fn shape_eq(&self, other: &dyn Any) -> bool {
-        other.downcast_ref::<Self>().is_some()
-    }
-
     fn props(&self) -> &Props {
         &self.props
     }

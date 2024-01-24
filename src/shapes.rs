@@ -14,11 +14,7 @@ pub struct Props {
     pub transform: Matrix<4>,
 }
 
-pub trait Shape: Debug + Sync + Send {
-    fn as_shape(&self) -> &dyn Shape;
-    fn as_any(&self) -> &dyn Any;
-    fn as_any_mut(&mut self) -> &mut dyn Any;
-    fn shape_eq(&self, other: &dyn Any) -> bool;
+pub trait Shape: Debug + Sync + Send + AnyShape {
     fn props(&self) -> &Props;
     fn props_mut(&mut self) -> &mut Props;
     fn local_intersect(&self, ray: Ray) -> Vec<Intersection>;
@@ -41,7 +37,53 @@ pub trait Shape: Debug + Sync + Send {
     }
 }
 
-impl<T: Shape + 'static> From<T> for Box<dyn Shape> {
+pub trait AnyShape: Any {
+    fn as_any(&self) -> &dyn Any;
+    fn as_any_mut(&mut self) -> &mut dyn Any;
+    fn as_shape(&self) -> &dyn Shape;
+    fn shape_eq(&self, other: &dyn Any) -> bool;
+}
+
+impl<T: Shape> AnyShape for T {
+    fn as_any(&self) -> &dyn Any {
+        self
+    }
+
+    fn as_any_mut(&mut self) -> &mut dyn Any {
+        self
+    }
+
+    fn as_shape(&self) -> &dyn Shape {
+        self
+    }
+
+    fn shape_eq(&self, other: &dyn Any) -> bool {
+        other.downcast_ref::<Self>().is_some()
+    }
+}
+
+pub trait Transforms {
+    fn transform(self, transform: Matrix<4>) -> Self;
+    fn material(self, material: Material) -> Self;
+}
+
+impl<T: Shape> Transforms for T {
+    #[must_use]
+    fn transform(mut self, transform: Matrix<4>) -> Self {
+        self.props_mut().transform = transform;
+
+        self
+    }
+
+    #[must_use]
+    fn material(mut self, material: Material) -> Self {
+        self.props_mut().material = material;
+
+        self
+    }
+}
+
+impl<T: Shape> From<T> for Box<dyn Shape> {
     fn from(t: T) -> Self {
         Box::new(t)
     }
@@ -87,22 +129,6 @@ mod tests {
         }
 
         impl Shape for TestShape {
-            fn as_shape(&self) -> &dyn Shape {
-                self
-            }
-
-            fn as_any(&self) -> &dyn Any {
-                self
-            }
-
-            fn as_any_mut(&mut self) -> &mut dyn Any {
-                self
-            }
-
-            fn shape_eq(&self, other: &dyn Any) -> bool {
-                other.downcast_ref::<Self>().is_some()
-            }
-
             fn props(&self) -> &Props {
                 &self.props
             }

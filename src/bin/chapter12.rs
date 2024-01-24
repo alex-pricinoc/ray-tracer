@@ -1,4 +1,6 @@
-use ray_tracer::{checkers, Camera, Cube, Material, Matrix, Sphere, World, BLACK, PI, WHITE};
+use ray_tracer::{
+    checkers, Camera, Cube, Material, Matrix, Sphere, Transforms, World, BLACK, PI, WHITE,
+};
 use std::fs::File;
 
 fn main() {

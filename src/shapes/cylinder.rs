@@ -1,6 +1,4 @@
-use crate::{
-    v, FuzzyEq, Intersection, Material, Matrix, Props, Ray, Shape, Tuple, EPSILON, F, INFINITY,
-};
+use crate::{v, FuzzyEq, Intersection, Props, Ray, Shape, Tuple, EPSILON, F, INFINITY};
 
 #[derive(Debug)]
 pub struct Cylinder {
@@ -11,20 +9,6 @@ pub struct Cylinder {
 }
 
 impl Cylinder {
-    #[must_use]
-    pub fn transform(mut self, transform: Matrix<4>) -> Self {
-        self.props.transform = transform;
-
-        self
-    }
-
-    #[must_use]
-    pub fn material(mut self, material: Material) -> Self {
-        self.props.material = material;
-
-        self
-    }
-
     #[must_use]
     pub fn minimum(mut self, minimum: impl Into<F>) -> Self {
         self.minimum = minimum.into();
@@ -90,22 +74,6 @@ impl Default for Cylinder {
 }
 
 impl Shape for Cylinder {
-    fn as_shape(&self) -> &dyn Shape {
-        self
-    }
-
-    fn as_any(&self) -> &dyn std::any::Any {
-        self
-    }
-
-    fn as_any_mut(&mut self) -> &mut dyn std::any::Any {
-        self
-    }
-
-    fn shape_eq(&self, other: &dyn std::any::Any) -> bool {
-        other.downcast_ref::<Self>().is_some()
-    }
-
     fn props(&self) -> &Props {
         &self.props
     }

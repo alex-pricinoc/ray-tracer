@@ -27,7 +27,7 @@ pub use shapes::{
     cylinder::Cylinder,
     plane::{glass as glass_plane, Plane},
     sphere::{glass as glass_sphere, Sphere},
-    {Props, Shape},
+    {AnyShape, Props, Shape, Transforms},
 };
 pub use transformation::view_transform;
 pub use tuple::{point as pt, vector as v, Tuple};

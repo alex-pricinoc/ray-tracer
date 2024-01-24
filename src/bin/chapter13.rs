@@ -1,5 +1,6 @@
 use ray_tracer::{
-    checkers, color, Camera, Cone, Cube, Cylinder, Material, Matrix, World, BLACK, PI, WHITE,
+    checkers, color, Camera, Cone, Cube, Cylinder, Material, Matrix, Transforms, World, BLACK, PI,
+    WHITE,
 };
 use std::fs::File;
 

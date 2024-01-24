@@ -1,5 +1,4 @@
-use crate::{pt, Intersection, Material, Matrix, Props, Ray, Shape, Tuple};
-use std::any::Any;
+use crate::{pt, Intersection, Props, Ray, Shape, Tuple};
 
 #[must_use]
 pub fn glass() -> Sphere {
@@ -14,39 +13,7 @@ pub struct Sphere {
     props: Props,
 }
 
-impl Sphere {
-    #[must_use]
-    pub fn transform(mut self, transform: Matrix<4>) -> Self {
-        self.props.transform = transform;
-
-        self
-    }
-
-    #[must_use]
-    pub fn material(mut self, material: Material) -> Self {
-        self.props.material = material;
-
-        self
-    }
-}
-
 impl Shape for Sphere {
-    fn as_shape(&self) -> &dyn Shape {
-        self
-    }
-
-    fn as_any(&self) -> &dyn Any {
-        self
-    }
-
-    fn as_any_mut(&mut self) -> &mut dyn Any {
-        self
-    }
-
-    fn shape_eq(&self, other: &dyn Any) -> bool {
-        other.downcast_ref::<Self>().is_some()
-    }
-
     fn props(&self) -> &Props {
         &self.props
     }

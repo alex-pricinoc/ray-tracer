@@ -1,4 +1,6 @@
-use ray_tracer::{color, point_light, pt, Canvas, Intersections, Material, Ray, Shape, Sphere, F};
+use ray_tracer::{
+    color, point_light, pt, Canvas, Intersections, Material, Ray, Shape, Sphere, Transforms, F,
+};
 use std::fs::File;
 
 fn main() {

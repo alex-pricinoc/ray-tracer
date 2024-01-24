@@ -1,6 +1,6 @@
 use crate::{
     color, pt, ray, Color, Comps, Intersection, Intersections, Material, Matrix, PointLight, Ray,
-    Shape, Sphere, Tuple, BLACK,
+    Shape, Sphere, Transforms, Tuple, BLACK,
 };
 
 pub struct World {

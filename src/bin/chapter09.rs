@@ -1,4 +1,4 @@
-use ray_tracer::{Camera, Material, Matrix, Plane, Sphere, World};
+use ray_tracer::{Camera, Material, Matrix, Plane, Sphere, Transforms, World};
 use std::fs::File;
 
 fn main() {
